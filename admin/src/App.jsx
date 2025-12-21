@@ -45,6 +45,8 @@ function ProtectedRoute({ component: Component, ...rest }) {
 }
 
 function App() {
+  const token = localStorage.getItem('token');
+  
   return (
     <QueryClientProvider client={queryClient}>
       <Switch>
@@ -68,7 +70,7 @@ function App() {
           {() => <ProtectedRoute component={ProfilePage} />}
         </Route>
         <Route path="/">
-          <Redirect to="/dashboard" />
+          {token ? <Redirect to="/dashboard" /> : <Redirect to="/login" />}
         </Route>
       </Switch>
       <Toaster />

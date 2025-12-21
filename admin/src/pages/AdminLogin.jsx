@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useLocation } from 'wouter'
-import axios from 'axios'
+import axios from '../lib/axios'
 import { toast } from 'sonner'
 
 export default function AdminLogin() {
