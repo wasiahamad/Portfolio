@@ -1,0 +1,88 @@
+/**
+ * Portfolio Backend Server
+ * 
+ * Main server file for the portfolio application.
+ * Handles API routes, database connection, and middleware setup.
+ * 
+ * Features:
+ * - REST API for portfolio content (projects, blogs, experience)
+ * - Contact form with email notifications
+ * - Visitor analytics tracking
+ * - Admin authentication
+ * - MongoDB integration
+ */
+
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import connectDB from './db/connection.js';
+import { seedAdmin } from './seedAdmin.js';
+import authRoutes from './routes/auth.js';
+import profileRoutes from './routes/profile.js';
+import blogRoutes from './routes/blogs.js';
+import projectRoutes from './routes/projects.js';
+import experienceRoutes from './routes/experience.js';
+import contactRoutes from './routes/contacts.js';
+import analyticsRoutes from './routes/analytics.js';
+
+// Load environment variables from .env file
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+// ========================================
+// Middleware Configuration
+// ========================================
+
+// Enable CORS for cross-origin requests
+app.use(cors());
+
+// Parse JSON request bodies
+app.use(express.json());
+
+// Parse URL-encoded request bodies
+app.use(express.urlencoded({ extended: true }));
+
+// ========================================
+// Database Connection
+// ========================================
+
+connectDB().then(() => {
+  console.log('✅ Database connected successfully');
+  // Seed admin user after successful DB connection
+  seedAdmin();
+});
+
+// ========================================
+// API Routes
+// ========================================
+
+app.use('/api/auth', authRoutes);           // Authentication (login, register)
+app.use('/api/profile', profileRoutes);     // Profile management
+app.use('/api/blogs', blogRoutes);          // Blog posts CRUD
+app.use('/api/projects', projectRoutes);    // Projects CRUD
+app.use('/api/experience', experienceRoutes); // Experience/Work history
+app.use('/api/contacts', contactRoutes);    // Contact form submissions
+app.use('/api/analytics', analyticsRoutes); // Visitor analytics
+
+// ========================================
+// Health Check Endpoint
+// ========================================
+
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'Server is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// ========================================
+// Start Server
+// ========================================
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server is running on http://localhost:${PORT}`);
+  console.log(`📊 API endpoints available at http://localhost:${PORT}/api`);
+});
+
