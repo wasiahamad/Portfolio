@@ -40,6 +40,8 @@ app.use(cors({
   origin: [
     'http://localhost:5001',
     'http://localhost:3000',
+    'https://portfolio1-client-v6cv.onrender.com',
+    'https://portfolio1-admin-lqjb.onrender.com',
     process.env.CLIENT_URL,
     process.env.ADMIN_URL
   ].filter(Boolean),
