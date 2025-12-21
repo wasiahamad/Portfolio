@@ -36,7 +36,15 @@ const PORT = process.env.PORT || 5000;
 // ========================================
 
 // Enable CORS for cross-origin requests
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:5001',
+    'http://localhost:3000',
+    process.env.CLIENT_URL,
+    process.env.ADMIN_URL
+  ].filter(Boolean),
+  credentials: true
+}));
 
 // Parse JSON request bodies
 app.use(express.json());
