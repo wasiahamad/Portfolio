@@ -36,9 +36,10 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: path.resolve(import.meta.dirname, "dist/public"),
+    outDir: "dist",
     emptyOutDir: true,
   },
+  publicDir: 'public',
   server: {
     host: "0.0.0.0",
     allowedHosts: true,
