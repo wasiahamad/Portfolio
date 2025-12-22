@@ -3,12 +3,16 @@ import axios from 'axios';
 // API Base URL - change this based on your environment
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
+console.log('🔗 Client API Base URL:', API_BASE_URL);
+
 // Create axios instance with default config
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
+  timeout: 30000,
 });
 
 // Request interceptor for adding auth token
