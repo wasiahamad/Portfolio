@@ -3,12 +3,16 @@ import axios from 'axios'
 // API Base URL - use production URL by default
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://portfolio-q5z7.onrender.com/api'
 
+console.log('🔗 API Base URL:', API_BASE_URL)
+
 // Create axios instance with base URL
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
+  timeout: 30000, // 30 second timeout
 })
 
 // Configure axios to include token in all requests

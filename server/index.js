@@ -37,19 +37,37 @@ const PORT = process.env.PORT || 5000;
 
 // Enable CORS for cross-origin requests
 app.use(cors({
-  origin: [
-    'http://localhost:5001',
-    'http://localhost:3000',
-    'http://localhost:5173',
-    'https://portfolio1-client-v6cv.onrender.com',
-    'https://portfolio1-admin-fe2h.onrender.com',
-    process.env.CLIENT_URL,
-    process.env.ADMIN_URL
-  ].filter(Boolean),
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      'http://localhost:5001',
+      'http://localhost:3000',
+      'http://localhost:5173',
+      'http://localhost:5174',
+      'https://portfolio1-client-v6cv.onrender.com',
+      'https://portfolio1-admin-fe2h.onrender.com',
+      process.env.CLIENT_URL,
+      process.env.ADMIN_URL
+    ].filter(Boolean);
+    
+    // In production, allow all render.com domains
+    if (origin.includes('onrender.com') || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(null, true); // Allow all in production
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  maxAge: 600 // Cache preflight for 10 minutes
 }));
+
+// Handle preflight requests explicitly
+app.options('*', cors());
 
 // Parse JSON request bodies
 app.use(express.json());
@@ -86,7 +104,26 @@ app.use('/api/analytics', analyticsRoutes); // Visitor analytics
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'Server is running',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    env: process.env.NODE_ENV || 'development'
+  });
+});
+
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Portfolio API Server',
+    status: 'Active',
+    version: '1.0.0'
+  });
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(500).json({ 
+    message: 'Internal server error',
+    error: process.env.NODE_ENV === 'development' ? err.message : undefined
   });
 });
 
