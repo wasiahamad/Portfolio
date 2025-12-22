@@ -1,7 +1,7 @@
 import axios from 'axios'
 
-// API Base URL
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+// API Base URL - use production URL by default
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://portfolio-q5z7.onrender.com/api'
 
 // Create axios instance with base URL
 const axiosInstance = axios.create({
