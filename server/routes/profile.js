@@ -52,4 +52,24 @@ router.post('/', authMiddleware, async (req, res) => {
   }
 });
 
+// PUT endpoint for compatibility with client
+router.put('/', authMiddleware, async (req, res) => {
+  try {
+    const profile = await Profile.findOne();
+    
+    if (profile) {
+      Object.assign(profile, req.body);
+      await profile.save();
+    } else {
+      const newProfile = new Profile(req.body);
+      await newProfile.save();
+    }
+
+    const updatedProfile = await Profile.findOne();
+    res.json(updatedProfile);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 export default router;

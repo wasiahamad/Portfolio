@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import axios from 'axios'
+import axios from '../lib/axios'
 import { Link } from 'wouter'
 import { toast } from 'sonner'
 
@@ -21,11 +21,11 @@ export default function Experience() {
 
   const { data: experiences, isLoading } = useQuery({
     queryKey: ['experiences'],
-    queryFn: () => axios.get('/api/experience').then(res => res.data)
+    queryFn: () => axios.get('/experience').then(res => res.data)
   })
 
   const createMutation = useMutation({
-    mutationFn: (data) => axios.post('/api/experience', data),
+    mutationFn: (data) => axios.post('/experience', data),
     onSuccess: () => {
       queryClient.invalidateQueries(['experiences'])
       toast.success('Experience added!')
@@ -34,7 +34,7 @@ export default function Experience() {
   })
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => axios.put(`/api/experience/${id}`, data),
+    mutationFn: ({ id, data }) => axios.put(`/experience/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries(['experiences'])
       toast.success('Experience updated!')
@@ -43,7 +43,7 @@ export default function Experience() {
   })
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => axios.delete(`/api/experience/${id}`),
+    mutationFn: (id) => axios.delete(`/experience/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries(['experiences'])
       toast.success('Experience deleted!')

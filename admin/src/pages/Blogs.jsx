@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import axios from 'axios'
+import axios from '../lib/axios'
 import { Link } from 'wouter'
 import { toast } from 'sonner'
 
@@ -19,11 +19,11 @@ export default function Blogs() {
 
   const { data: blogs, isLoading } = useQuery({
     queryKey: ['blogs'],
-    queryFn: () => axios.get('/api/blogs').then(res => res.data)
+    queryFn: () => axios.get('/blogs').then(res => res.data)
   })
 
   const createMutation = useMutation({
-    mutationFn: (data) => axios.post('/api/blogs', data),
+    mutationFn: (data) => axios.post('/blogs', data),
     onSuccess: () => {
       queryClient.invalidateQueries(['blogs'])
       toast.success('Blog created successfully!')
@@ -33,7 +33,7 @@ export default function Blogs() {
   })
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => axios.put(`/api/blogs/${id}`, data),
+    mutationFn: ({ id, data }) => axios.put(`/blogs/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries(['blogs'])
       toast.success('Blog updated successfully!')
@@ -43,7 +43,7 @@ export default function Blogs() {
   })
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => axios.delete(`/api/blogs/${id}`),
+    mutationFn: (id) => axios.delete(`/blogs/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries(['blogs'])
       toast.success('Blog deleted successfully!')

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '../lib/axios';
 import AdminLayout from '../components/AdminLayout';
 
 const ContactsContent = () => {
@@ -13,10 +13,7 @@ const ContactsContent = () => {
 
   const fetchContacts = async () => {
     try {
-      const token = localStorage.getItem('adminToken');
-      const response = await axios.get('http://localhost:5000/api/contacts', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await axios.get('/contacts');
       setContacts(response.data);
     } catch (error) {
       console.error('Error fetching contacts:', error);
@@ -34,11 +31,9 @@ const ContactsContent = () => {
   const sendReply = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('adminToken');
       await axios.post(
-        `http://localhost:5000/api/contacts/reply/${replyModal.contact._id}`,
-        replyData,
-        { headers: { Authorization: `Bearer ${token}` } }
+        `/contacts/reply/${replyModal.contact._id}`,
+        replyData
       );
       alert('Reply sent successfully!');
       setReplyModal({ show: false, contact: null });
@@ -52,10 +47,7 @@ const ContactsContent = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure?')) {
       try {
-        const token = localStorage.getItem('adminToken');
-        await axios.delete(`http://localhost:5000/api/contacts/${id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await axios.delete(`/contacts/${id}`);
         fetchContacts();
       } catch (error) {
         console.error('Error deleting contact:', error);

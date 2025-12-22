@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import axios from 'axios'
+import axios from '../lib/axios'
 import { Link } from 'wouter'
 import { toast } from 'sonner'
 
@@ -20,11 +20,11 @@ export default function Projects() {
 
   const { data: projects, isLoading } = useQuery({
     queryKey: ['projects'],
-    queryFn: () => axios.get('/api/projects').then(res => res.data)
+    queryFn: () => axios.get('/projects').then(res => res.data)
   })
 
   const createMutation = useMutation({
-    mutationFn: (data) => axios.post('/api/projects', data),
+    mutationFn: (data) => axios.post('/projects', data),
     onSuccess: () => {
       queryClient.invalidateQueries(['projects'])
       toast.success('Project created successfully!')
@@ -34,7 +34,7 @@ export default function Projects() {
   })
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => axios.put(`/api/projects/${id}`, data),
+    mutationFn: ({ id, data }) => axios.put(`/projects/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries(['projects'])
       toast.success('Project updated successfully!')
@@ -44,7 +44,7 @@ export default function Projects() {
   })
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => axios.delete(`/api/projects/${id}`),
+    mutationFn: (id) => axios.delete(`/projects/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries(['projects'])
       toast.success('Project deleted successfully!')

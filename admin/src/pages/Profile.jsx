@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import axios from 'axios'
+import axios from '../lib/axios'
 import { toast } from 'sonner'
 
 export default function Profile() {
@@ -28,7 +28,7 @@ export default function Profile() {
   const { data: profile, isLoading } = useQuery({
     queryKey: ['profile'],
     queryFn: async () => {
-      const res = await axios.get('/api/profile')
+      const res = await axios.get('/profile')
       return res.data
     },
   })
@@ -59,10 +59,7 @@ export default function Profile() {
 
   const mutation = useMutation({
     mutationFn: async (data) => {
-      const token = localStorage.getItem('token')
-      const res = await axios.post('/api/profile', data, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      const res = await axios.post('/profile', data)
       return res.data
     },
     onSuccess: () => {

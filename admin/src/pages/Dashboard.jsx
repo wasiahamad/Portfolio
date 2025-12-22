@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import axios from '../lib/axios';
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -24,12 +24,11 @@ const Dashboard = () => {
 
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem('adminToken');
       const [blogs, projects, experiences, contacts] = await Promise.all([
-        axios.get('http://localhost:5000/api/blogs', { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get('http://localhost:5000/api/projects', { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get('http://localhost:5000/api/experiences', { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get('http://localhost:5000/api/contacts', { headers: { Authorization: `Bearer ${token}` } })
+        axios.get('/blogs'),
+        axios.get('/projects'),
+        axios.get('/experience'),
+        axios.get('/contacts')
       ]);
 
       setStats({
@@ -45,10 +44,7 @@ const Dashboard = () => {
 
   const fetchAnalytics = async () => {
     try {
-      const token = localStorage.getItem('adminToken');
-      const response = await axios.get('http://localhost:5000/api/analytics/stats', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await axios.get('/analytics/stats');
       setAnalytics(response.data);
     } catch (error) {
       console.error('Error fetching analytics:', error);
