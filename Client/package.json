@@ -5,9 +5,10 @@
   "license": "MIT",
   "scripts": {
     "dev": "vite dev --port 5000",
-    "build": "vite build",
+    "build": "tsc && vite build",
     "preview": "vite preview",
-    "check": "tsc"
+    "check": "tsc",
+    "postinstall": "echo 'Dependencies installed successfully'"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
