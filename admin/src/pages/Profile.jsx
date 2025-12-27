@@ -24,6 +24,8 @@ export default function Profile() {
     website: '',
     image: ''
   })
+  const [uploading, setUploading] = useState(false)
+  const [imagePreview, setImagePreview] = useState('')
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ['profile'],
@@ -86,6 +88,50 @@ export default function Profile() {
       }))
     } else {
       setFormData(prev => ({ ...prev, [name]: value }))
+    }
+  }
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file')
+      return
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size should be less than 5MB')
+      return
+    }
+
+    try {
+      setUploading(true)
+      const formData = new FormData()
+      formData.append('image', file)
+
+      const token = localStorage.getItem('token')
+      const response = await fetch(`${axios.defaults.baseURL}/upload/image`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      })
+
+      if (!response.ok) throw new Error('Upload failed')
+
+      const data = await response.json()
+      setFormData(prev => ({ ...prev, image: data.url }))
+      setImagePreview(data.url)
+      toast.success('Image uploaded successfully!')
+    } catch (error) {
+      console.error('Upload error:', error)
+      toast.error('Failed to upload image')
+    } finally {
+      setUploading(false)
     }
   }
 
@@ -287,18 +333,36 @@ export default function Profile() {
         {/* Image */}
         <div className="bg-white p-6 rounded-lg shadow">
           <h2 className="text-xl font-semibold mb-4">Profile Image</h2>
-          <div>
-            <label className="block text-sm font-medium mb-1">Image URL</label>
-            <input
-              type="url"
-              name="image"
-              value={formData.image}
-              onChange={handleChange}
-              className="w-full p-2 border rounded"
-              placeholder="https://example.com/image.jpg"
-            />
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Upload Image</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                disabled={uploading}
+                className="w-full p-2 border rounded file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              />
+              {uploading && (
+                <p className="text-sm text-blue-600 mt-2">Uploading image...</p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Or paste Image URL</label>
+              <input
+                type="url"
+                name="image"
+                value={formData.image}
+                onChange={handleChange}
+                className="w-full p-2 border rounded"
+                placeholder="https://example.com/image.jpg"
+              />
+            </div>
             {formData.image && (
-              <img src={formData.image} alt="Preview" className="mt-2 w-32 h-32 object-cover rounded" />
+              <div>
+                <p className="text-sm font-medium mb-2">Preview:</p>
+                <img src={formData.image} alt="Preview" className="w-32 h-32 object-cover rounded-lg shadow" />
+              </div>
             )}
           </div>
         </div>

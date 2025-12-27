@@ -8,6 +8,7 @@ export default function Blogs() {
   const queryClient = useQueryClient()
   const [showForm, setShowForm] = useState(false)
   const [editingBlog, setEditingBlog] = useState(null)
+  const [uploading, setUploading] = useState(false)
   const [formData, setFormData] = useState({
     title: '',
     content: '',
@@ -97,6 +98,49 @@ export default function Blogs() {
     }
   }
 
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file')
+      return
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size should be less than 5MB')
+      return
+    }
+
+    try {
+      setUploading(true)
+      const uploadData = new FormData()
+      uploadData.append('image', file)
+
+      const token = localStorage.getItem('token')
+      const response = await fetch(`${axios.defaults.baseURL}/upload/image`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: uploadData
+      })
+
+      if (!response.ok) throw new Error('Upload failed')
+
+      const data = await response.json()
+      setFormData(prev => ({ ...prev, image: data.url }))
+      toast.success('Image uploaded successfully!')
+    } catch (error) {
+      console.error('Upload error:', error)
+      toast.error('Failed to upload image')
+    } finally {
+      setUploading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white shadow mb-8">
@@ -152,14 +196,37 @@ export default function Blogs() {
                   onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Image URL</label>
-                <input
-                  type="url"
-                  className="w-full px-3 py-2 border rounded-md"
-                  value={formData.image}
-                  onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                />
+              <div className="space-y-2">
+                <label className="block text-sm font-medium mb-1">Blog Image</label>
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">Upload Image</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    disabled={uploading}
+                    className="w-full px-3 py-2 border rounded-md file:mr-4 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  />
+                  {uploading && (
+                    <p className="text-sm text-blue-600 mt-1">Uploading image...</p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">Or paste Image URL</label>
+                  <input
+                    type="url"
+                    className="w-full px-3 py-2 border rounded-md"
+                    placeholder="https://example.com/image.jpg"
+                    value={formData.image}
+                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                  />
+                </div>
+                {formData.image && (
+                  <div className="mt-2">
+                    <p className="text-xs text-gray-600 mb-1">Preview:</p>
+                    <img src={formData.image} alt="Preview" className="w-32 h-32 object-cover rounded-lg shadow" />
+                  </div>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Tags (comma-separated)</label>

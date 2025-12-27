@@ -24,6 +24,7 @@ import projectRoutes from './routes/projects.js';
 import experienceRoutes from './routes/experience.js';
 import contactRoutes from './routes/contacts.js';
 import analyticsRoutes from './routes/analytics.js';
+import uploadRoutes from './routes/upload.js';
 
 // Load environment variables from .env file
 dotenv.config();
@@ -96,6 +97,7 @@ app.use('/api/projects', projectRoutes);    // Projects CRUD
 app.use('/api/experience', experienceRoutes); // Experience/Work history
 app.use('/api/contacts', contactRoutes);    // Contact form submissions
 app.use('/api/analytics', analyticsRoutes); // Visitor analytics
+app.use('/api/upload', uploadRoutes);       // Image uploads
 
 // ========================================
 // Health Check Endpoint
