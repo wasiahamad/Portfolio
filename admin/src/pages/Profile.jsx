@@ -109,27 +109,21 @@ export default function Profile() {
 
     try {
       setUploading(true)
-      const formData = new FormData()
-      formData.append('image', file)
+      const uploadFormData = new FormData()
+      uploadFormData.append('image', file)
 
-      const token = localStorage.getItem('token')
-      const response = await fetch(`${axios.defaults.baseURL}/upload/image`, {
-        method: 'POST',
+      const response = await axios.post('/upload/image', uploadFormData, {
         headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formData
+          'Content-Type': 'multipart/form-data'
+        }
       })
 
-      if (!response.ok) throw new Error('Upload failed')
-
-      const data = await response.json()
-      setFormData(prev => ({ ...prev, image: data.url }))
-      setImagePreview(data.url)
+      setFormData(prev => ({ ...prev, image: response.data.url }))
+      setImagePreview(response.data.url)
       toast.success('Image uploaded successfully!')
     } catch (error) {
       console.error('Upload error:', error)
-      toast.error('Failed to upload image')
+      toast.error(error.response?.data?.message || 'Failed to upload image')
     } finally {
       setUploading(false)
     }

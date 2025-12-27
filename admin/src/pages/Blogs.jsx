@@ -116,26 +116,20 @@ export default function Blogs() {
 
     try {
       setUploading(true)
-      const uploadData = new FormData()
-      uploadData.append('image', file)
+      const uploadFormData = new FormData()
+      uploadFormData.append('image', file)
 
-      const token = localStorage.getItem('token')
-      const response = await fetch(`${axios.defaults.baseURL}/upload/image`, {
-        method: 'POST',
+      const response = await axios.post('/upload/image', uploadFormData, {
         headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: uploadData
+          'Content-Type': 'multipart/form-data'
+        }
       })
 
-      if (!response.ok) throw new Error('Upload failed')
-
-      const data = await response.json()
-      setFormData(prev => ({ ...prev, image: data.url }))
+      setFormData(prev => ({ ...prev, image: response.data.url }))
       toast.success('Image uploaded successfully!')
     } catch (error) {
       console.error('Upload error:', error)
-      toast.error('Failed to upload image')
+      toast.error(error.response?.data?.message || 'Failed to upload image')
     } finally {
       setUploading(false)
     }
