@@ -7,14 +7,14 @@ import { profileAPI } from "@/lib/api"
 
 interface Profile {
   name?: string
-  tagline?: string
+  title?: string
   bio?: string
   email?: string
 }
 
 const DEMO_PROFILE: Profile = {
   name: "Creative Developer",
-  tagline: "Creative Developer & Designer",
+  title: "Creative Developer & Designer",
   bio: "I build accessible, pixel-perfect, and performant web applications with a focus on motion and user experience.",
 }
 
@@ -55,7 +55,7 @@ export default function Hero() {
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
             <h2 className="text-xl md:text-2xl font-medium text-primary mb-4 tracking-wide">
-              {displayProfile.tagline}
+              {displayProfile.title}
             </h2>
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-b from-foreground to-foreground/70">
               Crafting Digital <br /> Experiences

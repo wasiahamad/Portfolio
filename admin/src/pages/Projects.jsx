@@ -4,10 +4,12 @@ import axios from '../lib/axios'
 import { Link } from 'wouter'
 import { toast } from 'sonner'
 
-export default function Projects() {
+export default function Projects() {     
   const queryClient = useQueryClient()
   const [showForm, setShowForm] = useState(false)
   const [editingProject, setEditingProject] = useState(null)
+  const [imageFile, setImageFile] = useState(null)
+  const [imagePreview, setImagePreview] = useState('')
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -23,8 +25,22 @@ export default function Projects() {
     queryFn: () => axios.get('/projects').then(res => res.data)
   })
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      setImageFile(file)
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setImagePreview(reader.result)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
   const createMutation = useMutation({
-    mutationFn: (data) => axios.post('/projects', data),
+    mutationFn: (formData) => axios.post('/projects', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    }),
     onSuccess: () => {
       queryClient.invalidateQueries(['projects'])
       toast.success('Project created successfully!')
@@ -34,7 +50,9 @@ export default function Projects() {
   })
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => axios.put(`/projects/${id}`, data),
+    mutationFn: ({ id, formData }) => axios.put(`/projects/${id}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    }),
     onSuccess: () => {
       queryClient.invalidateQueries(['projects'])
       toast.success('Project updated successfully!')
@@ -62,21 +80,30 @@ export default function Projects() {
       github: '',
       featured: false
     })
+    setImageFile(null)
+    setImagePreview('')
     setEditingProject(null)
     setShowForm(false)
   }
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    const data = {
-      ...formData,
-      technologies: formData.technologies.split(',').map(t => t.trim())
+    const submitData = new FormData()
+    submitData.append('title', formData.title)
+    submitData.append('description', formData.description)
+    submitData.append('technologies', JSON.stringify(formData.technologies.split(',').map(t => t.trim())))
+    submitData.append('liveUrl', formData.liveUrl)
+    submitData.append('github', formData.github)
+    submitData.append('featured', formData.featured)
+    
+    if (imageFile) {
+      submitData.append('image', imageFile)
     }
     
     if (editingProject) {
-      updateMutation.mutate({ id: editingProject._id, data })
+      updateMutation.mutate({ id: editingProject._id, formData: submitData })
     } else {
-      createMutation.mutate(data)
+      createMutation.mutate(submitData)
     }
   }
 
@@ -88,9 +115,11 @@ export default function Projects() {
       technologies: project.technologies.join(', '),
       image: project.image || '',
       liveUrl: project.liveUrl || '',
-      githubUrl: project.githubUrl || '',
+      github: project.github || '',
       featured: project.featured || false
     })
+    setImageFile(null)
+    setImagePreview(project.image || '')
     setShowForm(true)
   }
 
@@ -156,13 +185,18 @@ export default function Projects() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Image URL</label>
+                <label className="block text-sm font-medium mb-1">Project Image</label>
                 <input
-                  type="url"
+                  type="file"
+                  accept="image/*"
                   className="w-full px-3 py-2 border rounded-md"
-                  value={formData.image}
-                  onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                  onChange={handleImageChange}
                 />
+                {imagePreview && (
+                  <div className="mt-3">
+                    <img src={imagePreview} alt="Preview" className="w-full h-48 object-cover rounded-md" />
+                  </div>
+                )}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>

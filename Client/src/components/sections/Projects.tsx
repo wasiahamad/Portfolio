@@ -50,7 +50,6 @@ const DEMO_PROJECTS: Project[] = [
 ]
 
 export default function Projects() {
-  const [, setLocation] = useLocation()
   const { data: projects = DEMO_PROJECTS, isLoading } = useQuery<Project[]>({
     queryKey: ["projects"],
     queryFn: async () => {
@@ -68,6 +67,15 @@ export default function Projects() {
       }
     },
   })
+
+  const handleProjectClick = (project: Project) => {
+    // Priority: liveUrl > github
+    if (project.liveUrl) {
+      window.open(project.liveUrl, '_blank')
+    } else if (project.github) {
+      window.open(project.github, '_blank')
+    }
+  }
 
   return (
     <section id="projects" className="py-24 container px-4 md:px-6">
@@ -95,7 +103,7 @@ export default function Projects() {
           <Spinner />
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {projects.map((project, index) => (
             <motion.div
               key={project._id}
@@ -109,14 +117,14 @@ export default function Projects() {
                 whileHover={{ y: -3, scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ duration: 0.25 }}
-                onClick={() => setLocation(`/project/${project._id}`)}
+                onClick={() => handleProjectClick(project)}
               >
                 <Card 
                   className="overflow-hidden border border-border/30 shadow-sm hover:shadow-lg hover:border-primary/50 transition-all duration-300 group bg-gradient-to-br from-card/40 to-background/20 backdrop-blur-md h-full flex flex-col cursor-pointer relative"
                   data-testid={`card-project-${project._id}`}
                 >
                   {/* Image Container */}
-                  <div className="relative overflow-hidden aspect-square bg-gradient-to-br from-primary/5 to-secondary/5 w-full">
+                  <div className="relative overflow-hidden aspect-video sm:aspect-square bg-gradient-to-br from-primary/5 to-secondary/5 w-full">
                     {/* Hover Overlay */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-end justify-end p-2 gap-1">
                       {project.liveUrl && (
@@ -160,43 +168,41 @@ export default function Projects() {
 
                   {/* Content */}
                   <motion.div 
-                    className="flex-grow flex flex-col p-2 bg-gradient-to-b from-card/30 to-background/10"
+                    className="flex-grow flex flex-col p-3 sm:p-4 bg-gradient-to-b from-card/30 to-background/10"
                     initial={{ opacity: 0, y: 10 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.08 + 0.1 }}
                   >
                     <motion.h3 
-                      className="text-xs font-bold group-hover:text-primary transition-colors duration-300 line-clamp-1 leading-tight mb-1"
+                      className="text-xs sm:text-sm md:text-base font-bold group-hover:text-primary transition-colors duration-300 line-clamp-2 leading-tight mb-1.5"
                       whileHover={{ x: 2 }}
                     >
                       {project.title}
                     </motion.h3>
                     
                     {/* Tags */}
-                    <div className="flex flex-wrap gap-0.5 mb-1.5">
-                      {project.tags?.slice(0, 2).map(tag => (
+                    <div className="flex flex-wrap gap-1 mb-2">
+                      {project.tags?.slice(0, 3).map(tag => (
                         <motion.div 
                           key={tag}
                           whileHover={{ scale: 1.05 }}
                           transition={{ duration: 0.2 }}
                         >
-                          <Badge variant="secondary" className="font-normal text-[9px] px-1 py-0.5 rounded text-xs">
+                          <Badge variant="secondary" className="font-normal text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded">
                             {tag}
                           </Badge>
                         </motion.div>
                       ))}
-                      {project.tags && project.tags.length > 2 && (
-                        <Badge variant="secondary" className="font-normal text-[9px] px-1 py-0.5 text-xs">
-                          +{project.tags.length - 2}
+                      {project.tags && project.tags.length > 3 && (
+                        <Badge variant="secondary" className="font-normal text-[9px] sm:text-[10px] px-1.5 py-0.5">
+                          +{project.tags.length - 3}
                         </Badge>
                       )}
                     </div>
 
                     {/* Description */}
-                    <p className="text-[11px] text-muted-foreground leading-snug line-clamp-2">
-                      {project.description.length > 80 
-                        ? project.description.substring(0, 80) + "..." 
-                        : project.description}
+                    <p className="text-[10px] sm:text-[11px] md:text-xs text-muted-foreground leading-relaxed line-clamp-5">
+                      {project.description}
                     </p>
                   </motion.div>
                 </Card>
