@@ -5,8 +5,16 @@ import { authMiddleware } from '../middleware/auth.js';
 const router = express.Router();
 
 // Upload single image
-router.post('/image', authMiddleware, upload.single('image'), async (req, res) => {
-  try {
+router.post('/image', authMiddleware, (req, res, next) => {
+  upload.single('image')(req, res, (err) => {
+    if (err) {
+      console.error('Multer/Cloudinary error:', err);
+      return res.status(500).json({ 
+        message: 'Failed to upload image', 
+        error: err.message 
+      });
+    }
+
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
     }
@@ -17,10 +25,7 @@ router.post('/image', authMiddleware, upload.single('image'), async (req, res) =
       url: req.file.path,
       publicId: req.file.filename
     });
-  } catch (error) {
-    console.error('Upload error:', error);
-    res.status(500).json({ message: 'Failed to upload image', error: error.message });
-  }
+  });
 });
 
 export default router;
