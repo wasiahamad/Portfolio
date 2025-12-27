@@ -67,10 +67,33 @@ export default function Experience() {
 
   const handleSubmit = (e) => {
     e.preventDefault()
+    
+    // Calculate duration
+    const start = new Date(formData.startDate)
+    const end = formData.current ? new Date() : new Date(formData.endDate)
+    const months = (end.getFullYear() - start.getFullYear()) * 12 + end.getMonth() - start.getMonth()
+    const years = Math.floor(months / 12)
+    const remainingMonths = months % 12
+    
+    let duration = ''
+    if (years > 0) duration += `${years} year${years > 1 ? 's' : ''}`
+    if (remainingMonths > 0) {
+      if (duration) duration += ' '
+      duration += `${remainingMonths} month${remainingMonths > 1 ? 's' : ''}`
+    }
+    if (formData.current) duration += ' (Current)'
+    
+    // Map frontend fields to backend schema
     const data = {
-      ...formData,
-      technologies: formData.technologies.split(',').map(t => t.trim()),
-      endDate: formData.current ? null : formData.endDate
+      position: formData.title,
+      company: formData.company,
+      duration: duration || '0 months',
+      description: formData.description,
+      location: formData.location,
+      startDate: formData.startDate,
+      endDate: formData.current ? null : formData.endDate,
+      current: formData.current,
+      technologies: formData.technologies.split(',').map(t => t.trim()).filter(Boolean)
     }
     
     if (editingExp) {
@@ -83,8 +106,8 @@ export default function Experience() {
   const handleEdit = (exp) => {
     setEditingExp(exp)
     setFormData({
-      title: exp.title,
-      company: exp.company,
+      title: exp.position || exp.title || '',
+      company: exp.company || '',
       location: exp.location || '',
       startDate: exp.startDate?.split('T')[0] || '',
       endDate: exp.endDate?.split('T')[0] || '',
@@ -140,11 +163,13 @@ export default function Experience() {
               <div key={exp._id} className="bg-white rounded-lg shadow p-6">
                 <div className="flex justify-between items-start mb-3">
                   <div>
-                    <h3 className="text-xl font-bold">{exp.title}</h3>
+                    <h3 className="text-xl font-bold">{exp.position || exp.title}</h3>
                     <p className="text-lg text-blue-600">{exp.company}</p>
                     {exp.location && <p className="text-sm text-gray-500">{exp.location}</p>}
                   </div>
-                  <p className="text-sm text-gray-600">{new Date(exp.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} - {exp.current ? 'Present' : new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</p>
+                  <p className="text-sm text-gray-600">
+                    {exp.startDate ? new Date(exp.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : ''} - {exp.current ? 'Present' : exp.endDate ? new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : ''}
+                  </p>
                 </div>
                 <p className="text-gray-700 mb-4">{exp.description}</p>
                 {exp.technologies && <div className="flex flex-wrap gap-2 mb-4">{exp.technologies.map((tech, idx) => <span key={idx} className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">{tech}</span>)}</div>}
