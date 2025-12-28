@@ -25,28 +25,33 @@ import nodemailer from 'nodemailer';
  * @returns {boolean} True if email credentials are configured
  */
 const isEmailConfigured = () => {
-  const hasConfig = !!(process.env.EMAIL_USER && process.env.EMAIL_PASSWORD);
+  const hasConfig = !!(process.env.EMAIL_HOST && process.env.EMAIL_USER && process.env.EMAIL_PASSWORD);
   if (!hasConfig) {
-    console.warn('⚠️ Email service not configured. Set EMAIL_USER and EMAIL_PASSWORD in .env file.');
+    console.warn('⚠️ Email service not configured. Set EMAIL_HOST, EMAIL_USER and EMAIL_PASSWORD in .env file.');
   }
   return hasConfig;
 };
 
 /**
  * Create and configure email transporter
- * Uses Gmail SMTP with credentials from environment variables
+ * Uses Brevo (Sendinblue) SMTP with credentials from environment variables
  * 
  * @returns {nodemailer.Transporter} Configured email transporter
  */
 const createTransporter = () => {
+  console.log('📧 Configuring Brevo SMTP:', {
+    host: process.env.EMAIL_HOST,
+    port: process.env.EMAIL_PORT,
+    user: process.env.EMAIL_USER
+  });
+  
   return nodemailer.createTransport({
-    service: 'gmail',
-    host: 'smtp.gmail.com',
-    port: 587,
+    host: process.env.EMAIL_HOST || 'smtp-relay.brevo.com',
+    port: parseInt(process.env.EMAIL_PORT) || 587,
     secure: false, // use TLS
     auth: {
-      user: process.env.EMAIL_USER || 'your-email@gmail.com',
-      pass: process.env.EMAIL_PASSWORD || 'your-app-password'
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASSWORD
     },
     connectionTimeout: 10000, // 10 second connection timeout
     greetingTimeout: 10000,   // 10 second greeting timeout
@@ -80,7 +85,7 @@ export const sendContactNotification = async (contactData) => {
   });
   
   const mailOptions = {
-    from: process.env.EMAIL_USER,
+    from: `"${process.env.ADMIN_NAME || 'Portfolio'}" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
     to: process.env.ADMIN_EMAIL || process.env.EMAIL_USER,
     subject: `🔔 New Contact Form Submission from ${contactData.name}`,
     html: `
@@ -161,7 +166,7 @@ export const sendAdminReply = async (replyData) => {
   const transporter = createTransporter();
   
   const mailOptions = {
-    from: process.env.EMAIL_USER,
+    from: `"${process.env.ADMIN_NAME || 'Portfolio Admin'}" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
     to: replyData.userEmail,
     subject: replyData.subject || 'Reply from Portfolio Admin',
     html: `
@@ -215,7 +220,7 @@ export const sendAutoReplyToUser = async (contactData) => {
   const transporter = createTransporter();
   
   const mailOptions = {
-    from: process.env.EMAIL_USER,
+    from: `"${process.env.ADMIN_NAME || 'Portfolio'}" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
     to: contactData.email,
     subject: '✅ Thank you for contacting us!',
     html: `
