@@ -44,18 +44,36 @@ const ContactsContent = () => {
       if (error.response) {
         const errorData = error.response.data;
         
-        // Show user-friendly error messages
+        // Show user-friendly error messages with copy-to-clipboard option
         if (errorData.error === 'EMAIL_NOT_CONFIGURED') {
-          alert(`⚠️ Email Service Not Configured\n\nThe email service is not set up on the server. You can still copy the user's email and contact them directly:\n\n${replyModal.contact.email}`);
+          const message = `⚠️ Email Service Not Configured\n\n${errorData.message}\n\n📧 User's Email:\n${replyModal.contact.email}\n\nClick OK to copy the email address.`;
+          if (confirm(message)) {
+            navigator.clipboard.writeText(replyModal.contact.email);
+            alert('Email address copied to clipboard!');
+          }
         } else if (errorData.error === 'CONNECTION_TIMEOUT') {
-          alert(`⏱️ Connection Timeout\n\n${errorData.message}\n\nUser's email: ${replyModal.contact.email}`);
+          const message = `⏱️ ${errorData.message}\n\n📧 User's Email: ${replyModal.contact.email}\n\n💡 Suggestion: ${errorData.suggestion || 'Use your regular email client to send the reply'}\n\nClick OK to copy the email address.`;
+          if (confirm(message)) {
+            navigator.clipboard.writeText(replyModal.contact.email);
+            alert('Email address copied to clipboard!');
+          }
+        } else if (errorData.error === 'AUTH_FAILED') {
+          alert(`🔐 ${errorData.message}\n\n📧 User's Email: ${errorData.contactEmail}\n\nPlease update your Gmail App Password in the server environment variables.`);
         } else if (errorData.contactEmail) {
-          alert(`❌ ${errorData.message}\n\nContact the user at: ${errorData.contactEmail}`);
+          const message = `❌ ${errorData.message}\n\n${errorData.suggestion || 'Contact: ' + errorData.contactEmail}\n\nClick OK to copy the email address.`;
+          if (confirm(message)) {
+            navigator.clipboard.writeText(errorData.contactEmail);
+            alert('Email address copied to clipboard!');
+          }
         } else {
           alert(`Failed to send reply: ${errorData.message || 'Server error'}`);
         }
       } else if (error.request) {
-        alert('Failed to send reply: No response from server. Email service may be unavailable.\n\nContact user at: ' + replyModal.contact.email);
+        const message = `Failed to send reply: No response from server.\n\n📧 User's Email: ${replyModal.contact.email}\n\nClick OK to copy the email address.`;
+        if (confirm(message)) {
+          navigator.clipboard.writeText(replyModal.contact.email);
+          alert('Email address copied to clipboard!');
+        }
       } else {
         alert('Failed to send reply: ' + error.message);
       }

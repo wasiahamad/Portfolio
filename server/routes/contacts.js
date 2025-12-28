@@ -65,24 +65,45 @@ router.post('/reply/:id', authMiddleware, async (req, res) => {
     } catch (emailError) {
       console.error('Email service error:', emailError.message);
       
-      // Check if it's a configuration error or connection error
-      if (emailError.message.includes('not configured')) {
-        res.status(503).json({ 
-          message: 'Email service is not configured. Please configure EMAIL_USER and EMAIL_PASSWORD in your environment variables.',
-          error: 'EMAIL_NOT_CONFIGURED'
+      // Detailed error categorization
+      const errorMessage = emailError.message || '';
+      const errorCode = emailError.code || '';
+      
+      if (errorMessage.includes('not configured')) {
+        return res.status(503).json({ 
+          message: 'Email service is not configured. Please set EMAIL_USER and EMAIL_PASSWORD.',
+          error: 'EMAIL_NOT_CONFIGURED',
+          contactEmail: contact.email
         });
-      } else if (emailError.message.includes('timeout') || emailError.code === 'ETIMEDOUT' || emailError.code === 'ECONNECTION') {
-        res.status(503).json({ 
-          message: 'Email server connection timeout. Please check your email configuration or try again later.',
-          error: 'CONNECTION_TIMEOUT'
+      } 
+      
+      if (errorMessage.includes('timeout') || 
+          errorCode === 'ETIMEDOUT' || 
+          errorCode === 'ECONNECTION' ||
+          errorCode === 'ESOCKET') {
+        return res.status(503).json({ 
+          message: 'Gmail SMTP connection timeout. The email server is not responding. Please check your network or try again later.',
+          error: 'CONNECTION_TIMEOUT',
+          contactEmail: contact.email,
+          suggestion: 'You can contact the user directly via email client using: ' + contact.email
         });
-      } else {
-        res.status(503).json({ 
-          message: 'Failed to send email. Please try again later or contact the user directly at: ' + contact.email,
-          error: 'EMAIL_SEND_FAILED',
+      }
+      
+      if (errorCode === 'EAUTH' || errorMessage.includes('authentication') || errorMessage.includes('Invalid login')) {
+        return res.status(503).json({ 
+          message: 'Gmail authentication failed. Please check your EMAIL_USER and EMAIL_PASSWORD (must be App Password).',
+          error: 'AUTH_FAILED',
           contactEmail: contact.email
         });
       }
+      
+      // Generic email error
+      return res.status(503).json({ 
+        message: 'Failed to send email: ' + errorMessage,
+        error: 'EMAIL_SEND_FAILED',
+        contactEmail: contact.email,
+        suggestion: 'Contact the user directly at: ' + contact.email
+      });
     }
   } catch (error) {
     console.error('Reply error:', error);

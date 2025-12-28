@@ -41,13 +41,19 @@ const isEmailConfigured = () => {
 const createTransporter = () => {
   return nodemailer.createTransport({
     service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false, // use TLS
     auth: {
       user: process.env.EMAIL_USER || 'your-email@gmail.com',
       pass: process.env.EMAIL_PASSWORD || 'your-app-password'
     },
-    connectionTimeout: 5000, // 5 second connection timeout
-    greetingTimeout: 5000,   // 5 second greeting timeout
-    socketTimeout: 5000      // 5 second socket timeout
+    connectionTimeout: 10000, // 10 second connection timeout
+    greetingTimeout: 10000,   // 10 second greeting timeout
+    socketTimeout: 10000,     // 10 second socket timeout
+    pool: true,
+    maxConnections: 1,
+    maxMessages: 3
   });
 };
 
@@ -179,11 +185,21 @@ export const sendAdminReply = async (replyData) => {
   };
 
   try {
-    await transporter.sendMail(mailOptions);
+    // Create a promise with timeout wrapper
+    const sendPromise = transporter.sendMail(mailOptions);
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Email send operation timed out after 15 seconds')), 15000)
+    );
+    
+    await Promise.race([sendPromise, timeoutPromise]);
     console.log(`✅ Reply email sent to ${replyData.userEmail}`);
     return { success: true };
   } catch (error) {
     console.error('❌ Error sending reply email:', error);
+    // Close the transporter connection
+    if (transporter && transporter.close) {
+      transporter.close();
+    }
     throw error;
   }
 };
