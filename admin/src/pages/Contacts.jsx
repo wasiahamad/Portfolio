@@ -42,9 +42,20 @@ const ContactsContent = () => {
     } catch (error) {
       console.error('Error sending reply:', error);
       if (error.response) {
-        alert(`Failed to send reply: ${error.response.data.message || 'Server error'}`);
+        const errorData = error.response.data;
+        
+        // Show user-friendly error messages
+        if (errorData.error === 'EMAIL_NOT_CONFIGURED') {
+          alert(`⚠️ Email Service Not Configured\n\nThe email service is not set up on the server. You can still copy the user's email and contact them directly:\n\n${replyModal.contact.email}`);
+        } else if (errorData.error === 'CONNECTION_TIMEOUT') {
+          alert(`⏱️ Connection Timeout\n\n${errorData.message}\n\nUser's email: ${replyModal.contact.email}`);
+        } else if (errorData.contactEmail) {
+          alert(`❌ ${errorData.message}\n\nContact the user at: ${errorData.contactEmail}`);
+        } else {
+          alert(`Failed to send reply: ${errorData.message || 'Server error'}`);
+        }
       } else if (error.request) {
-        alert('Failed to send reply: No response from server. Email service may be unavailable.');
+        alert('Failed to send reply: No response from server. Email service may be unavailable.\n\nContact user at: ' + replyModal.contact.email);
       } else {
         alert('Failed to send reply: ' + error.message);
       }

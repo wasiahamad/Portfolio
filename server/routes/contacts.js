@@ -63,12 +63,26 @@ router.post('/reply/:id', authMiddleware, async (req, res) => {
       await sendAdminReply(replyData);
       res.json({ message: 'Reply sent successfully' });
     } catch (emailError) {
-      console.error('Email service error:', emailError);
-      // Return a specific error message about email service
-      res.status(503).json({ 
-        message: 'Email service is currently unavailable. Please try again later or contact the user directly.',
-        error: 'EMAIL_SERVICE_ERROR'
-      });
+      console.error('Email service error:', emailError.message);
+      
+      // Check if it's a configuration error or connection error
+      if (emailError.message.includes('not configured')) {
+        res.status(503).json({ 
+          message: 'Email service is not configured. Please configure EMAIL_USER and EMAIL_PASSWORD in your environment variables.',
+          error: 'EMAIL_NOT_CONFIGURED'
+        });
+      } else if (emailError.message.includes('timeout') || emailError.code === 'ETIMEDOUT' || emailError.code === 'ECONNECTION') {
+        res.status(503).json({ 
+          message: 'Email server connection timeout. Please check your email configuration or try again later.',
+          error: 'CONNECTION_TIMEOUT'
+        });
+      } else {
+        res.status(503).json({ 
+          message: 'Failed to send email. Please try again later or contact the user directly at: ' + contact.email,
+          error: 'EMAIL_SEND_FAILED',
+          contactEmail: contact.email
+        });
+      }
     }
   } catch (error) {
     console.error('Reply error:', error);

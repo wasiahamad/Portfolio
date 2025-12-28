@@ -21,6 +21,18 @@
 import nodemailer from 'nodemailer';
 
 /**
+ * Check if email service is configured
+ * @returns {boolean} True if email credentials are configured
+ */
+const isEmailConfigured = () => {
+  const hasConfig = !!(process.env.EMAIL_USER && process.env.EMAIL_PASSWORD);
+  if (!hasConfig) {
+    console.warn('⚠️ Email service not configured. Set EMAIL_USER and EMAIL_PASSWORD in .env file.');
+  }
+  return hasConfig;
+};
+
+/**
  * Create and configure email transporter
  * Uses Gmail SMTP with credentials from environment variables
  * 
@@ -32,12 +44,21 @@ const createTransporter = () => {
     auth: {
       user: process.env.EMAIL_USER || 'your-email@gmail.com',
       pass: process.env.EMAIL_PASSWORD || 'your-app-password'
-    }
+    },
+    connectionTimeout: 5000, // 5 second connection timeout
+    greetingTimeout: 5000,   // 5 second greeting timeout
+    socketTimeout: 5000      // 5 second socket timeout
   });
 };
 
 // Send contact form notification to admin
 export const sendContactNotification = async (contactData) => {
+  // Check if email is configured
+  if (!isEmailConfigured()) {
+    console.log('📧 Email not configured - skipping contact notification');
+    return { success: false, message: 'Email service not configured' };
+  }
+
   const transporter = createTransporter();
   
   // Get current date and time
@@ -126,6 +147,11 @@ export const sendContactNotification = async (contactData) => {
 
 // Send reply email from admin to user
 export const sendAdminReply = async (replyData) => {
+  // Check if email is configured
+  if (!isEmailConfigured()) {
+    throw new Error('Email service is not configured. Please set EMAIL_USER and EMAIL_PASSWORD environment variables.');
+  }
+
   const transporter = createTransporter();
   
   const mailOptions = {
@@ -164,6 +190,12 @@ export const sendAdminReply = async (replyData) => {
 
 // Send automatic confirmation email to user
 export const sendAutoReplyToUser = async (contactData) => {
+  // Check if email is configured
+  if (!isEmailConfigured()) {
+    console.log('📧 Email not configured - skipping auto-reply');
+    return { success: false, message: 'Email service not configured' };
+  }
+
   const transporter = createTransporter();
   
   const mailOptions = {
