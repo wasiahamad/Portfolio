@@ -59,9 +59,19 @@ router.post('/reply/:id', authMiddleware, async (req, res) => {
       message: req.body.message
     };
 
-    await sendAdminReply(replyData);
-    res.json({ message: 'Reply sent successfully' });
+    try {
+      await sendAdminReply(replyData);
+      res.json({ message: 'Reply sent successfully' });
+    } catch (emailError) {
+      console.error('Email service error:', emailError);
+      // Return a specific error message about email service
+      res.status(503).json({ 
+        message: 'Email service is currently unavailable. Please try again later or contact the user directly.',
+        error: 'EMAIL_SERVICE_ERROR'
+      });
+    }
   } catch (error) {
+    console.error('Reply error:', error);
     res.status(500).json({ message: error.message });
   }
 });

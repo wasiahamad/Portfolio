@@ -33,14 +33,21 @@ const ContactsContent = () => {
     try {
       await axios.post(
         `/contacts/reply/${replyModal.contact._id}`,
-        replyData
+        replyData,
+        { timeout: 30000 } // 30 second timeout
       );
       alert('Reply sent successfully!');
       setReplyModal({ show: false, contact: null });
       setReplyData({ subject: '', message: '' });
     } catch (error) {
       console.error('Error sending reply:', error);
-      alert('Failed to send reply');
+      if (error.response) {
+        alert(`Failed to send reply: ${error.response.data.message || 'Server error'}`);
+      } else if (error.request) {
+        alert('Failed to send reply: No response from server. Email service may be unavailable.');
+      } else {
+        alert('Failed to send reply: ' + error.message);
+      }
     }
   };
 

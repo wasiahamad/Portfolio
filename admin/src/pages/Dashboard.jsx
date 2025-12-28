@@ -17,9 +17,12 @@ const Dashboard = () => {
     monthVisitors: 0
   });
 
+  const [showAnalytics, setShowAnalytics] = useState(false);
+
   useEffect(() => {
     fetchStats();
-    fetchAnalytics();
+    // Disable analytics fetching to prevent errors
+    // fetchAnalytics();
   }, []);
 
   const fetchStats = async () => {
@@ -48,6 +51,14 @@ const Dashboard = () => {
       setAnalytics(response.data);
     } catch (error) {
       console.error('Error fetching analytics:', error);
+      // Set default values if analytics fails
+      setAnalytics({
+        totalVisits: 0,
+        uniqueVisitors: 0,
+        todayVisitors: 0,
+        weekVisitors: 0,
+        monthVisitors: 0
+      });
     }
   };
 
@@ -72,24 +83,26 @@ const Dashboard = () => {
         <p className="text-gray-600">Welcome back! Here's what's happening with your portfolio.</p>
       </div>
 
-      {/* Visitor Analytics Section */}
-      <div>
-        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-          <span>👥</span>
-          Visitor Analytics
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {visitorCards.map((card, index) => (
-            <div key={index} className={`${card.color} text-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow`}>
-              <div className="flex items-center justify-between mb-2">
-                <h2 className="text-sm font-medium opacity-90">{card.title}</h2>
-                <span className="text-2xl">{card.icon}</span>
+      {/* Visitor Analytics Section - Disabled */}
+      {showAnalytics && (
+        <div>
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <span>👥</span>
+            Visitor Analytics
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {visitorCards.map((card, index) => (
+              <div key={index} className={`${card.color} text-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow`}>
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="text-sm font-medium opacity-90">{card.title}</h2>
+                  <span className="text-2xl">{card.icon}</span>
+                </div>
+                <p className="text-4xl font-bold">{card.count.toLocaleString()}</p>
               </div>
-              <p className="text-4xl font-bold">{card.count.toLocaleString()}</p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Content Statistics Section */}
       <div>
@@ -111,7 +124,7 @@ const Dashboard = () => {
       </div>
 
       {/* Performance Highlights */}
-      {analytics.monthVisitors > 0 && (
+      {showAnalytics && analytics.monthVisitors > 0 && (
         <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 p-6 rounded-lg">
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <span>📈</span>
