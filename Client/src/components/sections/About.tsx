@@ -64,22 +64,36 @@ export default function About() {
     }
   ]
 
-  const handleDownloadCV = () => {
+  const handleDownloadCV = async () => {
     const fallbackCvUrl = "/resume.pdf"
     const cvUrl = displayProfile.cvUrl || fallbackCvUrl
     
-    // For Cloudinary URLs or external URLs, open in new tab
-    // For local files, download directly
-    if (cvUrl.startsWith('http://') || cvUrl.startsWith('https://')) {
+    try {
+      // For external URLs (like Cloudinary), fetch and download with proper filename
+      if (cvUrl.startsWith('http://') || cvUrl.startsWith('https://')) {
+        const response = await fetch(cvUrl)
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = 'CV.pdf'
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        window.URL.revokeObjectURL(url)
+      } else {
+        // Local file - direct download
+        const link = document.createElement('a')
+        link.href = cvUrl
+        link.download = 'CV.pdf'
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+      }
+    } catch (error) {
+      console.error('Download failed:', error)
+      // Fallback: open in new tab
       window.open(cvUrl, '_blank')
-    } else {
-      // Local file - force download
-      const link = document.createElement('a')
-      link.href = cvUrl
-      link.download = 'CV.pdf'
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
     }
   }
 
