@@ -72,15 +72,20 @@ export default function Hero() {
             transition={{ delay: 0.3, duration: 0.8 }}
             className="flex flex-col sm:flex-row gap-4 justify-center items-center"
           >
-            <Button size="lg" className="rounded-full text-lg h-12 px-8 shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-shadow">
-              <Link to="#projects">
-                View Projects
-              </Link>
+            <Button
+              size="lg"
+              onClick={() => document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth' })}
+              className="rounded-full text-lg h-12 px-8 shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-shadow">
+              View Projects
             </Button>
-            <Button size="lg" variant="outline" className="rounded-full text-lg h-12 px-8 bg-background/50 backdrop-blur-sm border-primary/20 hover:bg-background/80">
-              <Link to="#contact">
-                Contact Me
-              </Link>
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
+
+              className="rounded-full text-lg h-12 px-8 bg-background/50 backdrop-blur-sm border-primary/20 hover:bg-background/80">
+
+              Contact Me
             </Button>
           </motion.div>
         </div>

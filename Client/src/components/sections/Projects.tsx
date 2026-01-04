@@ -50,6 +50,7 @@ const DEMO_PROJECTS: Project[] = [
 ]
 
 export default function Projects() {
+  const [, setLocation] = useLocation()
   const { data: projects = DEMO_PROJECTS, isLoading } = useQuery<Project[]>({
     queryKey: ["projects"],
     queryFn: async () => {
@@ -69,12 +70,8 @@ export default function Projects() {
   })
 
   const handleProjectClick = (project: Project) => {
-    // Priority: liveUrl > github
-    if (project.liveUrl) {
-      window.open(project.liveUrl, '_blank')
-    } else if (project.github) {
-      window.open(project.github, '_blank')
-    }
+    // Navigate to project detail page
+    setLocation(`/project/${project._id}`)
   }
 
   return (

@@ -67,7 +67,15 @@ export default function About() {
   const handleDownloadCV = () => {
     const fallbackCvUrl = "/resume.pdf"
     const cvUrl = displayProfile.cvUrl || fallbackCvUrl
-    window.open(cvUrl, "_blank")
+    
+    // Create a temporary anchor element to force download
+    const link = document.createElement('a')
+    link.href = cvUrl
+    link.download = 'CV.pdf' // Force download with filename
+    link.target = '_blank'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
   }
 
   return (
@@ -118,7 +126,7 @@ export default function About() {
                   className="h-12 px-8 rounded-full text-base gap-2 group"
                   data-testid="button-download-cv"
                 >
-                  Download CV 
+                  Download CV
                   <Download className="w-4 h-4 group-hover:translate-y-1 transition-transform" />
                 </Button>
                 <Button 
@@ -127,7 +135,7 @@ export default function About() {
                   onClick={() => document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth' })}
                   data-testid="button-view-projects"
                 >
-                  View Projects
+                  View Projects 
                   <ArrowRight className="w-4 h-4" />
                 </Button>
               </div>
