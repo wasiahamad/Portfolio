@@ -38,12 +38,26 @@ export default function ProjectDetail() {
   const { id } = useParams()
   const [, setLocation] = useLocation()
 
-  const { data: project, isLoading } = useQuery<Project>({
+  const { data: project, isLoading, error } = useQuery<Project>({
     queryKey: ["project", id],
     queryFn: async () => {
-      const res = await fetch(`/api/projects/${id}`)
-      if (!res.ok) throw new Error("Project not found")
-      return res.json()
+      try {
+        const data = await projectsAPI.getById(id!)
+        return data
+      } catch (error) {
+        console.error('Error fetching project:', error)
+        // Fallback to demo project if API fails (demo projects use index as id)
+        const demoIndex = DEMO_PROJECTS.findIndex((p, idx) => (idx + 1).toString() === id)
+        if (demoIndex !== -1) {
+          return {
+            _id: id!,
+            title: DEMO_PROJECTS[demoIndex].title,
+            description: DEMO_PROJECTS[demoIndex].features?.[0] || '',
+            tags: DEMO_PROJECTS[demoIndex].technologies || [],
+          } as Project
+        }
+        throw error
+      }
     },
   })
 

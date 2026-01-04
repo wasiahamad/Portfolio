@@ -68,14 +68,19 @@ export default function About() {
     const fallbackCvUrl = "/resume.pdf"
     const cvUrl = displayProfile.cvUrl || fallbackCvUrl
     
-    // Create a temporary anchor element to force download
-    const link = document.createElement('a')
-    link.href = cvUrl
-    link.download = 'CV.pdf' // Force download with filename
-    link.target = '_blank'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    // For Cloudinary URLs or external URLs, open in new tab
+    // For local files, download directly
+    if (cvUrl.startsWith('http://') || cvUrl.startsWith('https://')) {
+      window.open(cvUrl, '_blank')
+    } else {
+      // Local file - force download
+      const link = document.createElement('a')
+      link.href = cvUrl
+      link.download = 'CV.pdf'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    }
   }
 
   return (

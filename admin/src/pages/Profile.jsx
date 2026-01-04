@@ -409,12 +409,20 @@ export default function Profile() {
             {cvUploading && (
               <p className="text-sm text-blue-600 mt-2">Uploading CV...</p>
             )}
-
-            {/* preview of CV */}
             {formData.cvUrl && (
-              <div>
-                <p className="text-sm font-medium mb-2">Preview:</p>
-                <img src={formData.cvUrl} alt="Preview" className="w-32 h-32 object-cover rounded-lg shadow" />
+              <div className="mt-3">
+                <p className="text-sm font-medium mb-2">Current CV:</p>
+                <a 
+                  href={formData.cvUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                  View CV (PDF)
+                </a>
               </div>
             )}
           </div>
