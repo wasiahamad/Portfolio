@@ -409,6 +409,14 @@ export default function Profile() {
             {cvUploading && (
               <p className="text-sm text-blue-600 mt-2">Uploading CV...</p>
             )}
+
+            {/* preview of CV */}
+            {formData.cvUrl && (
+              <div>
+                <p className="text-sm font-medium mb-2">Preview:</p>
+                <img src={formData.cvUrl} alt="Preview" className="w-32 h-32 object-cover rounded-lg shadow" />
+              </div>
+            )}
           </div>
         </div>
 
