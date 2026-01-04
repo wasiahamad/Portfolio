@@ -1,7 +1,7 @@
 import express from 'express';
 import Contact from '../models/Contact.js';
 import { authMiddleware } from '../middleware/auth.js';
-import { sendContactNotification, sendAdminReply, sendAutoReplyToUser } from '../services/emailService.js';
+import { sendContactNotification, sendAdminReply, sendAutoReplyToUser } from '../services/emailServiceBrevo.js';
 
 const router = express.Router();
 

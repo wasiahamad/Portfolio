@@ -4,7 +4,7 @@ import axios from '../lib/axios'
 import { Link } from 'wouter'
 import { toast } from 'sonner'
 
-export default function Projects() {     
+export default function Projects() {
   const queryClient = useQueryClient()
   const [showForm, setShowForm] = useState(false)
   const [editingProject, setEditingProject] = useState(null)
@@ -95,11 +95,11 @@ export default function Projects() {
     submitData.append('liveUrl', formData.liveUrl)
     submitData.append('github', formData.github)
     submitData.append('featured', formData.featured)
-    
+
     if (imageFile) {
       submitData.append('image', imageFile)
     }
-    
+
     if (editingProject) {
       updateMutation.mutate({ id: editingProject._id, formData: submitData })
     } else {

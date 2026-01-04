@@ -1,13 +1,11 @@
 import dotenv from 'dotenv';
-import { sendAdminReply } from './services/emailService.js';
+import { sendAdminReply } from './services/emailServiceBrevo.js';
 
 dotenv.config();
 
-console.log('📧 Testing Brevo Email Service...');
+console.log('📧 Testing Brevo API Email Service...');
 console.log('Configuration:', {
-  host: process.env.EMAIL_HOST,
-  port: process.env.EMAIL_PORT,
-  user: process.env.EMAIL_USER,
+  apiKey: process.env.BREVO_API_KEY ? '✅ Set' : '❌ Not set',
   from: process.env.EMAIL_FROM,
   to: process.env.ADMIN_EMAIL
 });
