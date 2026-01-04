@@ -5,29 +5,6 @@ import profileImage from "@assets/generated_images/professional_portrait_of_a_cr
 import { useQuery } from "@tanstack/react-query"
 import { profileAPI } from "@/lib/api"
 
-const defaultSkills = [
-  {
-    icon: <Code2 className="w-5 h-5" />,
-    title: "Frontend",
-    desc: "React, TS, Tailwind"
-  },
-  {
-    icon: <Palette className="w-5 h-5" />,
-    title: "Design",
-    desc: "Figma, Motion, UI/UX"
-  },
-  {
-    icon: <Terminal className="w-5 h-5" />,
-    title: "Backend",
-    desc: "Node, DBs, API"
-  },
-  {
-    icon: <Cpu className="w-5 h-5" />,
-    title: "Optimization",
-    desc: "SEO, Performance"
-  }
-]
-
 interface Profile {
   name?: string
   title?: string
@@ -72,27 +49,25 @@ export default function About() {
     },
     {
       icon: <Palette className="w-5 h-5" />,
-      title: "Design",
-      desc: profile?.skills?.design || "Figma, Motion, UI/UX"
+      title: "Design & Database",
+      desc: profile?.skills?.design || "Figma, Motion, UI/UX, MongoDB, SQL"
     },
     {
       icon: <Terminal className="w-5 h-5" />,
       title: "Backend",
-      desc: profile?.skills?.backend || "Node, DBs, API"
+      desc: profile?.skills?.backend || "Node.js, Express.js, REST APIs, JWT Authentication"
     },
     {
       icon: <Cpu className="w-5 h-5" />,
-      title: "Optimization",
-      desc: profile?.skills?.optimization || "SEO, Performance"
+      title: "Tools",
+      desc: profile?.skills?.optimization || "Git, GitHub, VS Code, Postman"
     }
   ]
 
   const handleDownloadCV = () => {
-    if (profile?.cvUrl) {
-      window.open(profile.cvUrl, "_blank")
-    } else {
-      window.open("/api/download/cv", "_blank")
-    }
+    const fallbackCvUrl = "/resume.pdf"
+    const cvUrl = displayProfile.cvUrl || fallbackCvUrl
+    window.open(cvUrl, "_blank")
   }
 
   return (
@@ -108,8 +83,8 @@ export default function About() {
             transition={{ duration: 0.8 }}
             className="w-full lg:w-1/3 relative"
           >
-            <div className="relative aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl">
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent z-10 mix-blend-multiply opacity-60" />
+            <div className="relative aspect-3/4 rounded-2xl overflow-hidden shadow-2xl">
+              <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent z-10 mix-blend-multiply opacity-60" />
               <img 
                 src={profile?.image || profileImage} 
                 alt="Profile" 

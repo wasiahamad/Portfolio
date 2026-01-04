@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import heroBg from "@assets/generated_images/abstract_modern_gradient_mesh_background.png"
 import { useQuery } from "@tanstack/react-query"
 import { profileAPI } from "@/lib/api"
+import { Link } from "wouter"
 
 interface Profile {
   name?: string
@@ -39,9 +40,9 @@ export default function Hero() {
       {/* Background Image with Overlay */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-background/30 dark:bg-background/60 backdrop-blur-[2px] z-10" />
-        <img 
-          src={heroBg} 
-          alt="Abstract Background" 
+        <img
+          src={heroBg}
+          alt="Abstract Background"
           className="w-full h-full object-cover opacity-80 dark:opacity-60"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent z-10" />
@@ -72,16 +73,20 @@ export default function Hero() {
             className="flex flex-col sm:flex-row gap-4 justify-center items-center"
           >
             <Button size="lg" className="rounded-full text-lg h-12 px-8 shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-shadow">
-              View Projects
+              <Link to="#projects">
+                View Projects
+              </Link>
             </Button>
             <Button size="lg" variant="outline" className="rounded-full text-lg h-12 px-8 bg-background/50 backdrop-blur-sm border-primary/20 hover:bg-background/80">
-              Contact Me
+              <Link to="#contact">
+                Contact Me
+              </Link>
             </Button>
           </motion.div>
         </div>
       </div>
 
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1, duration: 1 }}

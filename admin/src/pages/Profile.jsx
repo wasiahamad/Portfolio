@@ -25,6 +25,7 @@ export default function Profile() {
     image: ''
   })
   const [uploading, setUploading] = useState(false)
+  const [cvUploading, setCvUploading] = useState(false)
   const [imagePreview, setImagePreview] = useState('')
 
   const { data: profile, isLoading } = useQuery({
@@ -54,7 +55,8 @@ export default function Profile() {
         linkedin: profile.linkedin || '',
         twitter: profile.twitter || '',
         website: profile.website || '',
-        image: profile.image || ''
+        image: profile.image || '',
+        cvUrl: profile.cvUrl || ''
       })
     }
   }, [profile])
@@ -129,6 +131,37 @@ export default function Profile() {
     }
   }
 
+  // CV upload handler can be added 
+  const handleCVUpload = async (e) => {
+    // Similar to handleImageUpload but for CV files
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (file.type !== 'application/pdf') {
+      toast.error('Please select a PDF file')
+      return
+    }
+
+    try {
+      setCvUploading(true)
+      const uploadFormData = new FormData()
+      uploadFormData.append('cv', file)
+
+      const response = await axios.post('/upload/cv', uploadFormData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+
+      const cvUrl = response.data.cvUrl || response.data.url
+      setFormData(prev => ({ ...prev, cvUrl }))
+      toast.success('CV uploaded successfully!')
+    } catch (error) {
+      console.error('Upload error:', error)
+      toast.error(error.response?.data?.message || 'Failed to upload CV')
+    } finally {
+      setCvUploading(false)
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -140,7 +173,7 @@ export default function Profile() {
   return (
     <div>
       <h1 className="text-3xl font-bold mb-8">Profile Settings</h1>
-      
+
       <form onSubmit={handleSubmit} className="space-y-6 max-w-3xl">
         {/* Basic Info */}
         <div className="bg-white p-6 rounded-lg shadow">
@@ -357,6 +390,24 @@ export default function Profile() {
                 <p className="text-sm font-medium mb-2">Preview:</p>
                 <img src={formData.image} alt="Preview" className="w-32 h-32 object-cover rounded-lg shadow" />
               </div>
+            )}
+          </div>
+        </div>
+
+        {/* CV Upload */}
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h2 className="text-xl font-semibold mb-4">Upload CV</h2>
+          <div>
+            <label className="block text-sm font-medium mb-2">Upload CV</label>
+            <input
+              type="file"
+              accept=".pdf"
+              onChange={handleCVUpload}
+              disabled={cvUploading}
+              className="w-full p-2 border rounded file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            />
+            {cvUploading && (
+              <p className="text-sm text-blue-600 mt-2">Uploading CV...</p>
             )}
           </div>
         </div>

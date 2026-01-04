@@ -9,25 +9,54 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Configure Cloudinary Storage
-const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: async (req, file) => {
-    return {
-      folder: 'portfolio-images',
-      allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
-      transformation: [{ width: 1200, height: 1200, crop: 'limit', quality: 'auto' }],
-      public_id: `${Date.now()}-${file.originalname.split('.')[0]}`,
-    };
+const imageStorage = new CloudinaryStorage({
+  cloudinary,
+  params: async (req, file) => ({
+    folder: 'portfolio-images',
+    resource_type: 'image',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+    transformation: [{ width: 1200, height: 1200, crop: 'limit', quality: 'auto' }],
+    public_id: `${Date.now()}-${file.originalname.split('.')[0]}`,
+  }),
+});
+
+const cvStorage = new CloudinaryStorage({
+  cloudinary,
+  params: async (req, file) => ({
+    folder: 'portfolio-cv',
+    resource_type: 'raw',
+    allowed_formats: ['pdf'],
+    public_id: `${Date.now()}-${file.originalname.split('.')[0]}`,
+  }),
+});
+
+export const uploadImage = multer({
+  storage: imageStorage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB
+  },
+  fileFilter: (req, file, cb) => {
+    if (!file.mimetype?.startsWith('image/')) {
+      return cb(new Error('Only image files are allowed'));
+    }
+    cb(null, true);
   },
 });
 
-// Create multer upload instance
-export const upload = multer({ 
-  storage: storage,
+export const uploadCv = multer({
+  storage: cvStorage,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
+    fileSize: 10 * 1024 * 1024, // 10MB
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype !== 'application/pdf') {
+      return cb(new Error('Only PDF files are allowed'));
+    }
+    cb(null, true);
   },
 });
+
+// Backwards compatibility: existing routes import { upload }
+export const upload = uploadImage;
 
 export default cloudinary;

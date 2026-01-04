@@ -90,7 +90,7 @@ connectDB().then(() => {
 // API Routes
 // ========================================
 
-app.use('/api/auth', authRoutes);           // Authentication (login, register)
+app.use('/api/auth', authRoutes);           // Authentication (login)
 app.use('/api/profile', profileRoutes);     // Profile management
 app.use('/api/blogs', blogRoutes);          // Blog posts CRUD
 app.use('/api/projects', projectRoutes);    // Projects CRUD
