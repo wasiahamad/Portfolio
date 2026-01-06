@@ -5,15 +5,29 @@
 
 const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email';
 
+const getFetch = async () => {
+  if (typeof globalThis.fetch === 'function') return globalThis.fetch;
+  const mod = await import('node-fetch');
+  return mod.default;
+};
+
+const getEnv = (key) => (process.env[key] || '').trim();
+
 /**
  * Check if Brevo API is configured
  */
 const isEmailConfigured = () => {
-  const apiKey = process.env.BREVO_API_KEY;
-  const hasConfig = !!apiKey && apiKey !== 'xkeysib-your-api-key' && apiKey.startsWith('xkeysib-');
+  const apiKey = getEnv('BREVO_API_KEY');
+  const fromEmail = getEnv('EMAIL_FROM') || getEnv('EMAIL_USER');
+  const hasConfig =
+    !!apiKey &&
+    apiKey !== 'xkeysib-your-api-key' &&
+    apiKey.startsWith('xkeysib-') &&
+    !!fromEmail;
   if (!hasConfig) {
     console.warn('⚠️ Brevo API not configured. Set BREVO_API_KEY in .env file.');
     console.warn('Current API key:', apiKey ? 'Set but invalid' : 'Not set');
+    console.warn('EMAIL_FROM/EMAIL_USER:', fromEmail ? 'Set' : 'Not set');
   }
   return hasConfig;
 };
@@ -22,29 +36,47 @@ const isEmailConfigured = () => {
  * Send email using Brevo API
  */
 const sendEmailViaAPI = async (emailData) => {
-  const apiKey = process.env.BREVO_API_KEY;
+  const apiKey = getEnv('BREVO_API_KEY');
+  const fetchFn = await getFetch();
+  const controller = new AbortController();
+  const timeoutMs = parseInt(getEnv('EMAIL_SEND_TIMEOUT_MS') || '15000', 10);
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
   
   try {
-    const response = await fetch(BREVO_API_URL, {
+    const response = await fetchFn(BREVO_API_URL, {
       method: 'POST',
       headers: {
         'accept': 'application/json',
         'api-key': apiKey,
         'content-type': 'application/json'
       },
-      body: JSON.stringify(emailData)
+      body: JSON.stringify(emailData),
+      signal: controller.signal
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(`Brevo API Error: ${error.message || response.statusText}`);
+      const raw = await response.text();
+      let message = response.statusText;
+      try {
+        const parsed = JSON.parse(raw);
+        message = parsed?.message || parsed?.error || message;
+      } catch {
+        // ignore JSON parse
+      }
+      throw new Error(`Brevo API Error (${response.status}): ${message}${raw ? ` | ${raw}` : ''}`);
     }
 
     const result = await response.json();
-    return { success: true, messageId: result.messageId };
+    return { success: true, messageId: result.messageId, provider: 'brevo' };
   } catch (error) {
+    if (error?.name === 'AbortError') {
+      console.error(`❌ Brevo API Error: request timed out after ${timeoutMs}ms`);
+      throw new Error(`Brevo API request timed out after ${timeoutMs}ms`);
+    }
     console.error('❌ Brevo API Error:', error.message);
     throw error;
+  } finally {
+    clearTimeout(timeout);
   }
 };
 
@@ -71,13 +103,17 @@ export const sendContactNotification = async (contactData) => {
   const emailData = {
     sender: {
       name: process.env.ADMIN_NAME || 'Portfolio',
-      email: process.env.EMAIL_FROM || '9ee4b1001@smtp-brevo.com'
+      email: getEnv('EMAIL_FROM') || getEnv('EMAIL_USER')
     },
     to: [{
-      email: process.env.ADMIN_EMAIL || 'mdwasia98@gmail.com',
+      email: getEnv('ADMIN_EMAIL') || getEnv('EMAIL_USER'),
       name: process.env.ADMIN_NAME || 'Admin'
     }],
     subject: `🔔 New Contact Form Submission from ${contactData.name}`,
+    replyTo: {
+      email: (contactData.email || '').trim(),
+      name: (contactData.name || '').trim()
+    },
     htmlContent: `
       <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background: #f9f9f9; padding: 20px;">
         <div style="background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
@@ -145,13 +181,17 @@ export const sendAdminReply = async (replyData) => {
   const emailData = {
     sender: {
       name: process.env.ADMIN_NAME || 'Portfolio Admin',
-      email: process.env.EMAIL_FROM || '9ee4b1001@smtp-brevo.com'
+      email: getEnv('EMAIL_FROM') || getEnv('EMAIL_USER')
     },
     to: [{
       email: replyData.userEmail,
       name: replyData.userName
     }],
     subject: replyData.subject || 'Reply from Portfolio Admin',
+    replyTo: {
+      email: getEnv('ADMIN_EMAIL') || getEnv('EMAIL_USER'),
+      name: process.env.ADMIN_NAME || 'Portfolio Admin'
+    },
     htmlContent: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #333; border-bottom: 2px solid #4CAF50; padding-bottom: 10px;">
@@ -194,13 +234,17 @@ export const sendAutoReplyToUser = async (contactData) => {
   const emailData = {
     sender: {
       name: process.env.ADMIN_NAME || 'Portfolio',
-      email: process.env.EMAIL_FROM || '9ee4b1001@smtp-brevo.com'
+      email: getEnv('EMAIL_FROM') || getEnv('EMAIL_USER')
     },
     to: [{
       email: contactData.email,
       name: contactData.name
     }],
     subject: '✅ Thank you for contacting us!',
+    replyTo: {
+      email: getEnv('ADMIN_EMAIL') || getEnv('EMAIL_USER'),
+      name: process.env.ADMIN_NAME || 'Portfolio Admin'
+    },
     htmlContent: `
       <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background: #f9f9f9; padding: 20px;">
         <div style="background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">

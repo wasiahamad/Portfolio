@@ -22,18 +22,28 @@ router.post('/', async (req, res) => {
     await contact.save();
     
     // Send email notification to admin (don't block response)
-    sendContactNotification(req.body).catch(error => {
+    const adminNotifyPromise = sendContactNotification(req.body).catch(error => {
       console.error('Email notification to admin failed:', error);
+      return { success: false, error: error.message };
     });
     
     // Send auto-reply to user (don't block response)
-    sendAutoReplyToUser(req.body).catch(error => {
+    const autoReplyPromise = sendAutoReplyToUser(req.body).catch(error => {
       console.error('Auto-reply to user failed:', error);
+      return { success: false, error: error.message };
     });
+
+    // Fire-and-forget, but attach handlers so Node doesn't treat as unhandled.
+    void adminNotifyPromise;
+    void autoReplyPromise;
     
     res.status(201).json({ 
       success: true,
-      message: 'Message sent successfully! Check your email for confirmation.' 
+      message: 'Message sent successfully!',
+      email: {
+        adminNotification: 'queued',
+        autoReply: 'queued'
+      }
     });
   } catch (error) {
     console.error('Error saving contact:', error);
@@ -60,8 +70,8 @@ router.post('/reply/:id', authMiddleware, async (req, res) => {
     };
 
     try {
-      await sendAdminReply(replyData);
-      res.json({ message: 'Reply sent successfully' });
+      const result = await sendAdminReply(replyData);
+      res.json({ message: 'Reply sent successfully', ...result });
     } catch (emailError) {
       console.error('Email service error:', emailError.message);
       
@@ -71,7 +81,7 @@ router.post('/reply/:id', authMiddleware, async (req, res) => {
       
       if (errorMessage.includes('not configured')) {
         return res.status(503).json({ 
-          message: 'Email service is not configured. Please set EMAIL_USER and EMAIL_PASSWORD.',
+          message: 'Email service is not configured. Please set BREVO_API_KEY and EMAIL_FROM (or EMAIL_USER).',
           error: 'EMAIL_NOT_CONFIGURED',
           contactEmail: contact.email
         });

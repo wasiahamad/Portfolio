@@ -82,9 +82,7 @@ export default function Hero() {
               size="lg"
               variant="outline"
               onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
-
               className="rounded-full text-lg h-12 px-8 bg-background/50 backdrop-blur-sm border-primary/20 hover:bg-background/80">
-
               Contact Me
             </Button>
           </motion.div>

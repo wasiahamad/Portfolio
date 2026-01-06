@@ -430,7 +430,7 @@ export default function Profile() {
 
         <button
           type="submit"
-          disabled={mutation.isPending}
+          disabled={mutation.isPending}  
           className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium"
         >
           {mutation.isPending ? 'Saving...' : 'Save Profile'}

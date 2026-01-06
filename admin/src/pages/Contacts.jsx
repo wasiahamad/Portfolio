@@ -98,7 +98,7 @@ const ContactsContent = () => {
       <div className="space-y-4">
         {contacts.map((contact) => (
           <div key={contact._id} className="bg-white p-6 rounded-lg shadow">
-            <div className="flex justify-between items-start">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
               <div className="flex-1">
                 <h3 className="text-xl font-bold">{contact.name}</h3>
                 <p className="text-gray-600">{contact.email}</p>
@@ -108,16 +108,16 @@ const ContactsContent = () => {
                   {new Date(contact.createdAt).toLocaleString()}
                 </p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-2 w-full sm:w-auto">
                 <button
                   onClick={() => handleReply(contact)}
-                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full sm:w-auto"
                 >
                   Reply
                 </button>
                 <button
                   onClick={() => handleDelete(contact._id)}
-                  className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                  className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 w-full sm:w-auto"
                 >
                   Delete
                 </button>
@@ -135,7 +135,7 @@ const ContactsContent = () => {
       {/* Reply Modal */}
       {replyModal.show && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded-lg shadow-2xl max-w-2xl w-full mx-4">
+          <div className="bg-white p-6 md:p-8 rounded-lg shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <h2 className="text-2xl font-bold mb-4">Reply to {replyModal.contact.name}</h2>
             <form onSubmit={sendReply}>
               <div className="mb-4">
@@ -167,17 +167,17 @@ const ContactsContent = () => {
                   required
                 />
               </div>
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-4">
                 <button
                   type="submit"
-                  className="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 transition"
+                  className="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 transition w-full sm:w-auto"
                 >
                   Send Reply
                 </button>
                 <button
                   type="button"
                   onClick={() => setReplyModal({ show: false, contact: null })}
-                  className="bg-gray-600 text-white px-6 py-3 rounded hover:bg-gray-700 transition"
+                  className="bg-gray-600 text-white px-6 py-3 rounded hover:bg-gray-700 transition w-full sm:w-auto"
                 >
                   Cancel
                 </button>
