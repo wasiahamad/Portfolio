@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { toast } from 'sonner';
 
@@ -25,6 +25,10 @@ const AdminLayout = ({ children }) => {
   const currentLabel = useMemo(() => {
     const found = menuItems.find((m) => m.path === location);
     return found?.label || 'Admin Panel';
+  }, [location]);
+
+  useEffect(() => {
+    setSidebarOpen(false);
   }, [location]);
 
   return (
@@ -77,7 +81,7 @@ const AdminLayout = ({ children }) => {
       </div>
 
       {/* Scrollable Main Content */}
-      <div className="flex-1 overflow-y-auto md:ml-64">
+      <div className="flex-1 overflow-y-auto">
         {/* Mobile top bar */}
         <div className="md:hidden sticky top-0 z-30 bg-white border-b border-gray-200">
           <div className="flex items-center justify-between px-4 py-3">

@@ -17,12 +17,11 @@ const Dashboard = () => {
     monthVisitors: 0
   });
 
-  const [showAnalytics, setShowAnalytics] = useState(false);
+  const [showAnalytics, setShowAnalytics] = useState(true);
 
   useEffect(() => {
     fetchStats();
-    // Disable analytics fetching to prevent errors
-    // fetchAnalytics();
+    fetchAnalytics();
   }, []);
 
   const fetchStats = async () => {

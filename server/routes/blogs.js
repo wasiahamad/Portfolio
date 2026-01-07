@@ -4,11 +4,37 @@ import { authMiddleware } from '../middleware/auth.js';
 
 const router = express.Router();
 
+const estimateReadTime = (content) => {
+  const words = (content || '').trim().split(/\s+/).filter(Boolean).length;
+  const minutes = Math.max(1, Math.ceil(words / 200));
+  return `${minutes} min read`;
+};
+
+const normalizeBlog = (blogDoc) => {
+  const blog = blogDoc?.toObject ? blogDoc.toObject() : blogDoc;
+  const content = blog?.content || '';
+
+  return {
+    ...blog,
+    excerpt: blog?.excerpt || content.slice(0, 180),
+    category: blog?.category || 'General',
+    readTime: blog?.readTime || estimateReadTime(content),
+    tags: Array.isArray(blog?.tags) ? blog.tags : [],
+    published: blog?.published !== false,
+  };
+};
+
 // Get all blogs
 router.get('/', async (req, res) => {
   try {
-    const blogs = await Blog.find().sort({ createdAt: -1 });
-    res.json(blogs);
+    const { published } = req.query;
+    const filter = {};
+    if (published === 'true') {
+      filter.published = true;
+    }
+
+    const blogs = await Blog.find(filter).sort({ createdAt: -1 });
+    res.json(blogs.map(normalizeBlog));
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -21,7 +47,7 @@ router.get('/:id', async (req, res) => {
     if (!blog) {
       return res.status(404).json({ message: 'Blog not found' });
     }
-    res.json(blog);
+    res.json(normalizeBlog(blog));
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

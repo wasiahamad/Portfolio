@@ -9,14 +9,12 @@ export default function Experience() {
   const [showForm, setShowForm] = useState(false)
   const [editingExp, setEditingExp] = useState(null)
   const [formData, setFormData] = useState({
-    title: '',
+    role: '',
     company: '',
-    location: '',
-    startDate: '',
-    endDate: '',
-    current: false,
+    period: '',
     description: '',
-    technologies: ''
+    skills: '',
+    order: 0
   })
 
   const { data: experiences, isLoading } = useQuery({
@@ -52,14 +50,12 @@ export default function Experience() {
 
   const resetForm = () => {
     setFormData({
-      title: '',
+      role: '',
       company: '',
-      location: '',
-      startDate: '',
-      endDate: '',
-      current: false,
+      period: '',
       description: '',
-      technologies: ''
+      skills: '',
+      order: 0
     })
     setEditingExp(null)
     setShowForm(false)
@@ -67,33 +63,14 @@ export default function Experience() {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    
-    // Calculate duration
-    const start = new Date(formData.startDate)
-    const end = formData.current ? new Date() : new Date(formData.endDate)
-    const months = (end.getFullYear() - start.getFullYear()) * 12 + end.getMonth() - start.getMonth()
-    const years = Math.floor(months / 12)
-    const remainingMonths = months % 12
-    
-    let duration = ''
-    if (years > 0) duration += `${years} year${years > 1 ? 's' : ''}`
-    if (remainingMonths > 0) {
-      if (duration) duration += ' '
-      duration += `${remainingMonths} month${remainingMonths > 1 ? 's' : ''}`
-    }
-    if (formData.current) duration += ' (Current)'
-    
-    // Map frontend fields to backend schema
+
     const data = {
-      position: formData.title,
+      role: formData.role,
       company: formData.company,
-      duration: duration || '0 months',
+      period: formData.period,
       description: formData.description,
-      location: formData.location,
-      startDate: formData.startDate,
-      endDate: formData.current ? null : formData.endDate,
-      current: formData.current,
-      technologies: formData.technologies.split(',').map(t => t.trim()).filter(Boolean)
+      skills: formData.skills.split(',').map(t => t.trim()).filter(Boolean),
+      order: Number(formData.order) || 0
     }
     
     if (editingExp) {
@@ -106,14 +83,12 @@ export default function Experience() {
   const handleEdit = (exp) => {
     setEditingExp(exp)
     setFormData({
-      title: exp.position || exp.title || '',
+      role: exp.role || exp.position || exp.title || '',
       company: exp.company || '',
-      location: exp.location || '',
-      startDate: exp.startDate?.split('T')[0] || '',
-      endDate: exp.endDate?.split('T')[0] || '',
-      current: exp.current || false,
+      period: exp.period || exp.duration || '',
       description: exp.description || '',
-      technologies: exp.technologies?.join(', ') || ''
+      skills: (exp.skills?.length ? exp.skills : exp.technologies)?.join(', ') || '',
+      order: typeof exp.order === 'number' ? exp.order : 0
     })
     setShowForm(true)
   }
@@ -139,16 +114,14 @@ export default function Experience() {
         {showForm && (
           <div className="bg-white rounded-lg shadow p-6 mb-8">
             <form onSubmit={handleSubmit} className="space-y-4">
-              <input type="text" required placeholder="Job Title" className="w-full px-3 py-2 border rounded" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} />
+              <input type="text" required placeholder="Role" className="w-full px-3 py-2 border rounded" value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value })} />
               <input type="text" required placeholder="Company" className="w-full px-3 py-2 border rounded" value={formData.company} onChange={(e) => setFormData({ ...formData, company: e.target.value })} />
-              <input type="text" placeholder="Location" className="w-full px-3 py-2 border rounded" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} />
-              <div className="grid grid-cols-2 gap-4">
-                <input type="date" required className="px-3 py-2 border rounded" value={formData.startDate} onChange={(e) => setFormData({ ...formData, startDate: e.target.value })} />
-                <input type="date" disabled={formData.current} className="px-3 py-2 border rounded disabled:bg-gray-100" value={formData.endDate} onChange={(e) => setFormData({ ...formData, endDate: e.target.value })} />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input type="text" required placeholder="Period (e.g. 2022 - Present)" className="w-full px-3 py-2 border rounded" value={formData.period} onChange={(e) => setFormData({ ...formData, period: e.target.value })} />
+                <input type="number" placeholder="Order" className="w-full px-3 py-2 border rounded" value={formData.order} onChange={(e) => setFormData({ ...formData, order: e.target.value })} />
               </div>
-              <label className="flex items-center"><input type="checkbox" className="mr-2" checked={formData.current} onChange={(e) => setFormData({ ...formData, current: e.target.checked })} />Currently working</label>
               <textarea required rows={4} placeholder="Description" className="w-full px-3 py-2 border rounded" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
-              <input type="text" placeholder="Technologies (comma-separated)" className="w-full px-3 py-2 border rounded" value={formData.technologies} onChange={(e) => setFormData({ ...formData, technologies: e.target.value })} />
+              <input type="text" placeholder="Skills (comma-separated)" className="w-full px-3 py-2 border rounded" value={formData.skills} onChange={(e) => setFormData({ ...formData, skills: e.target.value })} />
               <div className="flex gap-2">
                 <button type="submit" className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">{editingExp ? 'Update' : 'Add'}</button>
                 <button type="button" onClick={resetForm} className="px-6 py-2 bg-gray-300 rounded hover:bg-gray-400">Cancel</button>
@@ -163,16 +136,19 @@ export default function Experience() {
               <div key={exp._id} className="bg-white rounded-lg shadow p-6">
                 <div className="flex justify-between items-start mb-3">
                   <div>
-                    <h3 className="text-xl font-bold">{exp.position || exp.title}</h3>
+                    <h3 className="text-xl font-bold">{exp.role || exp.position || exp.title}</h3>
                     <p className="text-lg text-blue-600">{exp.company}</p>
-                    {exp.location && <p className="text-sm text-gray-500">{exp.location}</p>}
                   </div>
-                  <p className="text-sm text-gray-600">
-                    {exp.startDate ? new Date(exp.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : ''} - {exp.current ? 'Present' : exp.endDate ? new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : ''}
-                  </p>
+                  <p className="text-sm text-gray-600">{exp.period || exp.duration}</p>
                 </div>
                 <p className="text-gray-700 mb-4">{exp.description}</p>
-                {exp.technologies && <div className="flex flex-wrap gap-2 mb-4">{exp.technologies.map((tech, idx) => <span key={idx} className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">{tech}</span>)}</div>}
+                {(exp.skills || exp.technologies) && (
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {(exp.skills?.length ? exp.skills : exp.technologies).map((skill, idx) => (
+                      <span key={idx} className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">{skill}</span>
+                    ))}
+                  </div>
+                )}
                 <div className="flex gap-2">
                   <button onClick={() => handleEdit(exp)} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">Edit</button>
                   <button onClick={() => { if(window.confirm('Delete?')) deleteMutation.mutate(exp._id) }} className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm">Delete</button>

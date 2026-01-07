@@ -4,11 +4,26 @@ import { authMiddleware } from '../middleware/auth.js';
 
 const router = express.Router();
 
+const normalizeExperience = (doc) => {
+  const exp = doc?.toObject ? doc.toObject() : doc;
+  return {
+    ...exp,
+    role: exp?.role || exp?.position || '',
+    period: exp?.period || exp?.duration || '',
+    skills: Array.isArray(exp?.skills) && exp.skills.length > 0
+      ? exp.skills
+      : Array.isArray(exp?.technologies)
+        ? exp.technologies
+        : [],
+    order: typeof exp?.order === 'number' ? exp.order : 0,
+  };
+};
+
 // Get all experiences
 router.get('/', async (req, res) => {
   try {
-    const experiences = await Experience.find().sort({ createdAt: -1 });
-    res.json(experiences);
+    const experiences = await Experience.find().sort({ order: 1, createdAt: -1 });
+    res.json(experiences.map(normalizeExperience));
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -19,7 +34,7 @@ router.post('/', authMiddleware, async (req, res) => {
   try {
     const experience = new Experience(req.body);
     await experience.save();
-    res.status(201).json(experience);
+    res.status(201).json(normalizeExperience(experience));
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -32,7 +47,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
     if (!experience) {
       return res.status(404).json({ message: 'Experience not found' });
     }
-    res.json(experience);
+    res.json(normalizeExperience(experience));
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

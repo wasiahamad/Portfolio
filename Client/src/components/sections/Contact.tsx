@@ -57,7 +57,7 @@ export default function Contact() {
     onSuccess: () => {
       toast({
         title: "Message sent!",
-        description: "Thanks for reaching out. I'll get back to you soon.",
+        description: "Thanks for reaching out. If you don’t see the confirmation email, check Spam/Promotions.",
       })
       form.reset()
     },
@@ -177,7 +177,7 @@ export default function Contact() {
                 />
                 <Button 
                   type="submit" 
-                  className="w-full text-lg h-12"
+                  className="w-full text-lg h-12 cursor-pointer"
                   disabled={mutation.isPending}
                   data-testid="button-submit"
                 >

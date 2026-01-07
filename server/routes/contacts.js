@@ -1,9 +1,16 @@
 import express from 'express';
 import Contact from '../models/Contact.js';
 import { authMiddleware } from '../middleware/auth.js';
-import { sendContactNotification, sendAdminReply, sendAutoReplyToUser } from '../services/emailServiceBrevo.js';
+import { sendContactNotification, sendAdminReply, sendAutoReplyToUser, sendTestEmail } from '../services/emailServiceBrevo.js';
 
 const router = express.Router();
+
+const withTimeout = (promise, ms, label) => {
+  const timeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms)
+  );
+  return Promise.race([promise, timeout]);
+};
 
 // Get all contacts
 router.get('/', authMiddleware, async (req, res) => {
@@ -20,29 +27,37 @@ router.post('/', async (req, res) => {
   try {
     const contact = new Contact(req.body);
     await contact.save();
-    
-    // Send email notification to admin (don't block response)
-    const adminNotifyPromise = sendContactNotification(req.body).catch(error => {
-      console.error('Email notification to admin failed:', error);
-      return { success: false, error: error.message };
-    });
-    
-    // Send auto-reply to user (don't block response)
-    const autoReplyPromise = sendAutoReplyToUser(req.body).catch(error => {
-      console.error('Auto-reply to user failed:', error);
-      return { success: false, error: error.message };
-    });
 
-    // Fire-and-forget, but attach handlers so Node doesn't treat as unhandled.
-    void adminNotifyPromise;
-    void autoReplyPromise;
-    
-    res.status(201).json({ 
+    // Try to send emails quickly; don't hang request forever.
+    const emailTimeoutMs = parseInt(process.env.EMAIL_SEND_TIMEOUT_MS || '15000', 10);
+
+    const adminNotify = withTimeout(
+      sendContactNotification(req.body),
+      emailTimeoutMs,
+      'Admin notification'
+    );
+    const autoReply = withTimeout(
+      sendAutoReplyToUser(req.body),
+      emailTimeoutMs,
+      'Auto-reply'
+    );
+
+    const [adminResult, autoReplyResult] = await Promise.allSettled([adminNotify, autoReply]);
+
+    const adminEmail = adminResult.status === 'fulfilled'
+      ? { status: 'sent', ...adminResult.value }
+      : { status: 'failed', error: adminResult.reason?.message || String(adminResult.reason) };
+
+    const userEmail = autoReplyResult.status === 'fulfilled'
+      ? { status: 'sent', ...autoReplyResult.value }
+      : { status: 'failed', error: autoReplyResult.reason?.message || String(autoReplyResult.reason) };
+
+    res.status(201).json({
       success: true,
-      message: 'Message sent successfully!',
+      message: 'Message saved successfully',
       email: {
-        adminNotification: 'queued',
-        autoReply: 'queued'
+        adminNotification: adminEmail,
+        autoReply: userEmail
       }
     });
   } catch (error) {
@@ -71,6 +86,9 @@ router.post('/reply/:id', authMiddleware, async (req, res) => {
 
     try {
       const result = await sendAdminReply(replyData);
+      contact.replied = true;
+      contact.repliedAt = new Date();
+      await contact.save();
       res.json({ message: 'Reply sent successfully', ...result });
     } catch (emailError) {
       console.error('Email service error:', emailError.message);
@@ -81,7 +99,7 @@ router.post('/reply/:id', authMiddleware, async (req, res) => {
       
       if (errorMessage.includes('not configured')) {
         return res.status(503).json({ 
-          message: 'Email service is not configured. Please set BREVO_API_KEY and EMAIL_FROM (or EMAIL_USER).',
+          message: 'Email service is not configured. Please set BREVO_API_KEY and BREVO_SENDER_EMAIL (verified sender in Brevo).',
           error: 'EMAIL_NOT_CONFIGURED',
           contactEmail: contact.email
         });
@@ -118,6 +136,18 @@ router.post('/reply/:id', authMiddleware, async (req, res) => {
   } catch (error) {
     console.error('Reply error:', error);
     res.status(500).json({ message: error.message });
+  }
+});
+
+// Admin-only: send a test email to verify production configuration
+router.post('/test-email', authMiddleware, async (req, res) => {
+  try {
+    const toEmail = req.body?.toEmail || process.env.ADMIN_EMAIL || process.env.EMAIL_USER;
+    const toName = req.body?.toName || process.env.ADMIN_NAME || 'Admin';
+    const result = await sendTestEmail({ toEmail, toName });
+    res.json({ message: 'Test email sent', ...result, toEmail });
+  } catch (error) {
+    res.status(503).json({ message: error.message || 'Failed to send test email', error: 'TEST_EMAIL_FAILED' });
   }
 });
 

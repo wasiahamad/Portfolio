@@ -39,6 +39,7 @@ const ContactsContent = () => {
       alert('Reply sent successfully!');
       setReplyModal({ show: false, contact: null });
       setReplyData({ subject: '', message: '' });
+      fetchContacts();
     } catch (error) {
       console.error('Error sending reply:', error);
       if (error.response) {
@@ -100,20 +101,32 @@ const ContactsContent = () => {
           <div key={contact._id} className="bg-white p-6 rounded-lg shadow">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
               <div className="flex-1">
-                <h3 className="text-xl font-bold">{contact.name}</h3>
-                <p className="text-gray-600">{contact.email}</p>
+                <h3 className="text-xl font-bold flex items-center gap-2">
+                  <span>{contact.name}</span>
+                  {contact.replied && (
+                    <span className="inline-flex items-center text-xs font-semibold px-2 py-1 rounded bg-green-100 text-green-700">
+                      ✓ Replied
+                    </span>
+                  )}
+                </h3>
+                <p className="text-gray-600 break-all">{contact.email}</p>
                 {contact.phone && <p className="text-gray-600">{contact.phone}</p>}
-                <p className="text-gray-700 mt-3">{contact.message}</p>
+                <p className="text-gray-700 mt-3 whitespace-pre-wrap break-words">{contact.message}</p>
                 <p className="text-sm text-gray-400 mt-2">
                   {new Date(contact.createdAt).toLocaleString()}
                 </p>
+                {contact.repliedAt && (
+                  <p className="text-sm text-green-700 mt-1">
+                    Replied at: {new Date(contact.repliedAt).toLocaleString()}
+                  </p>
+                )}
               </div>
               <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-2 w-full sm:w-auto">
                 <button
                   onClick={() => handleReply(contact)}
                   className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full sm:w-auto"
                 >
-                  Reply
+                  {contact.replied ? 'Reply Again' : 'Reply'}
                 </button>
                 <button
                   onClick={() => handleDelete(contact._id)}

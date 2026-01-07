@@ -81,7 +81,7 @@ export const projectsAPI = {
 // ==================== BLOGS API ====================
 export const blogsAPI = {
   getAll: async () => {
-    const response = await api.get('/blogs');
+    const response = await api.get('/blogs?published=true');
     return Array.isArray(response.data) ? response.data : [];
   },
   getById: async (id: string) => {

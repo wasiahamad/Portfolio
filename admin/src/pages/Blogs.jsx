@@ -13,6 +13,8 @@ export default function Blogs() {
     title: '',
     content: '',
     excerpt: '',
+    category: '',
+    readTime: '',
     image: '',
     tags: '',
     published: true
@@ -57,6 +59,8 @@ export default function Blogs() {
       title: '',
       content: '',
       excerpt: '',
+      category: '',
+      readTime: '',
       image: '',
       tags: '',
       published: true
@@ -85,6 +89,8 @@ export default function Blogs() {
       title: blog.title,
       content: blog.content,
       excerpt: blog.excerpt || '',
+      category: blog.category || '',
+      readTime: blog.readTime || '',
       image: blog.image || '',
       tags: blog.tags?.join(', ') || '',
       published: blog.published !== false
@@ -179,6 +185,28 @@ export default function Blogs() {
                   value={formData.excerpt}
                   onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
                 />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Category</label>
+                  <input
+                    type="text"
+                    placeholder="Tutorial, Guide, Best Practices..."
+                    className="w-full px-3 py-2 border rounded-md"
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Read Time</label>
+                  <input
+                    type="text"
+                    placeholder="8 min read"
+                    className="w-full px-3 py-2 border rounded-md"
+                    value={formData.readTime}
+                    onChange={(e) => setFormData({ ...formData, readTime: e.target.value })}
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Content *</label>

@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { motion, useScroll, useMotionValueEvent } from "framer-motion"
-import { Link } from "wouter"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
-import { Menu, X } from "lucide-react"
+import { Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 
@@ -18,6 +17,7 @@ const navLinks = [
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const { scrollY } = useScroll()
 
   useMotionValueEvent(scrollY, "change", (latest) => {
@@ -37,7 +37,7 @@ export default function Navbar() {
     >
       <div className="container px-4 md:px-6 flex items-center justify-between">
         <div className="text-xl font-bold tracking-tighter font-display">
-          PORTFOLIO<span className="text-primary">.</span>
+          <a href="/">PORTFOLIO</a><span className="text-primary">.</span>
         </div>
 
         {/* Desktop Nav */}
@@ -57,7 +57,7 @@ export default function Navbar() {
         {/* Mobile Nav */}
         <div className="md:hidden flex items-center gap-4">
           <ThemeToggle />
-          <Sheet>
+          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon">
                 <Menu className="w-6 h-6" />
@@ -70,6 +70,7 @@ export default function Navbar() {
                     key={link.name} 
                     href={link.href}
                     className="text-lg font-medium hover:text-primary transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
                   >
                     {link.name}
                   </a>

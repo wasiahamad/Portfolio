@@ -89,7 +89,7 @@ export default function Projects() {
             A collection of projects that showcase my passion for design-driven engineering.
           </p>
         </div>
-        <Button variant="ghost" className="group">
+        <Button variant="ghost" className="group cursor-pointer" onClick={() => setLocation('/projects')}>
           View All Projects 
           <ExternalLink className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
         </Button>

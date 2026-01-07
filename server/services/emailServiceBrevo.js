@@ -13,21 +13,27 @@ const getFetch = async () => {
 
 const getEnv = (key) => (process.env[key] || '').trim();
 
+const getSender = () => {
+  const senderEmail = getEnv('BREVO_SENDER_EMAIL') || getEnv('EMAIL_FROM');
+  const senderName = getEnv('BREVO_SENDER_NAME') || process.env.ADMIN_NAME || 'Portfolio';
+  return { senderEmail, senderName };
+};
+
 /**
  * Check if Brevo API is configured
  */
 const isEmailConfigured = () => {
   const apiKey = getEnv('BREVO_API_KEY');
-  const fromEmail = getEnv('EMAIL_FROM') || getEnv('EMAIL_USER');
+  const { senderEmail } = getSender();
   const hasConfig =
     !!apiKey &&
     apiKey !== 'xkeysib-your-api-key' &&
     apiKey.startsWith('xkeysib-') &&
-    !!fromEmail;
+    !!senderEmail;
   if (!hasConfig) {
     console.warn('⚠️ Brevo API not configured. Set BREVO_API_KEY in .env file.');
     console.warn('Current API key:', apiKey ? 'Set but invalid' : 'Not set');
-    console.warn('EMAIL_FROM/EMAIL_USER:', fromEmail ? 'Set' : 'Not set');
+    console.warn('BREVO_SENDER_EMAIL/EMAIL_FROM:', senderEmail ? 'Set' : 'Not set');
   }
   return hasConfig;
 };
@@ -100,16 +106,18 @@ export const sendContactNotification = async (contactData) => {
     timeZoneName: 'short'
   });
 
+  const { senderEmail, senderName } = getSender();
   const emailData = {
     sender: {
-      name: process.env.ADMIN_NAME || 'Portfolio',
-      email: getEnv('EMAIL_FROM') || getEnv('EMAIL_USER')
+      name: senderName,
+      email: senderEmail
     },
     to: [{
       email: getEnv('ADMIN_EMAIL') || getEnv('EMAIL_USER'),
       name: process.env.ADMIN_NAME || 'Admin'
     }],
     subject: `🔔 New Contact Form Submission from ${contactData.name}`,
+    textContent: `New contact form submission\n\nName: ${contactData.name}\nEmail: ${contactData.email}${contactData.phone ? `\nPhone: ${contactData.phone}` : ''}\nSubmitted: ${submittedAt}\n\nMessage:\n${contactData.message}`,
     replyTo: {
       email: (contactData.email || '').trim(),
       name: (contactData.name || '').trim()
@@ -175,19 +183,22 @@ export const sendContactNotification = async (contactData) => {
  */
 export const sendAdminReply = async (replyData) => {
   if (!isEmailConfigured()) {
-    throw new Error('Brevo API is not configured. Please set BREVO_API_KEY environment variable.');
+    throw new Error('Brevo email is not configured. Set BREVO_API_KEY and BREVO_SENDER_EMAIL (a verified sender in Brevo).');
   }
+
+  const { senderEmail, senderName } = getSender();
 
   const emailData = {
     sender: {
-      name: process.env.ADMIN_NAME || 'Portfolio Admin',
-      email: getEnv('EMAIL_FROM') || getEnv('EMAIL_USER')
+      name: senderName,
+      email: senderEmail
     },
     to: [{
       email: replyData.userEmail,
       name: replyData.userName
     }],
     subject: replyData.subject || 'Reply from Portfolio Admin',
+    textContent: `Hi ${replyData.userName},\n\n${replyData.message}\n\nBest regards,\n${process.env.ADMIN_NAME || 'Portfolio Admin'}`,
     replyTo: {
       email: getEnv('ADMIN_EMAIL') || getEnv('EMAIL_USER'),
       name: process.env.ADMIN_NAME || 'Portfolio Admin'
@@ -231,16 +242,18 @@ export const sendAutoReplyToUser = async (contactData) => {
     return { success: false, message: 'Email service not configured' };
   }
 
+  const { senderEmail, senderName } = getSender();
   const emailData = {
     sender: {
-      name: process.env.ADMIN_NAME || 'Portfolio',
-      email: getEnv('EMAIL_FROM') || getEnv('EMAIL_USER')
+      name: senderName,
+      email: senderEmail
     },
     to: [{
       email: contactData.email,
       name: contactData.name
     }],
     subject: '✅ Thank you for contacting us!',
+    textContent: `Hi ${contactData.name},\n\nThanks for reaching out! I’ve received your message and I’ll get back to you soon (usually within 24–48 hours).\n\nYour message:\n"${contactData.message}"\n\nBest regards,\n${process.env.ADMIN_NAME || 'Portfolio Admin'}`,
     replyTo: {
       email: getEnv('ADMIN_EMAIL') || getEnv('EMAIL_USER'),
       name: process.env.ADMIN_NAME || 'Portfolio Admin'
@@ -299,4 +312,42 @@ export const sendAutoReplyToUser = async (contactData) => {
     console.error('❌ Failed to send auto-reply:', error);
     throw error;
   }
+};
+
+/**
+ * Send a simple test email (admin/debug)
+ */
+export const sendTestEmail = async ({ toEmail, toName }) => {
+  if (!isEmailConfigured()) {
+    throw new Error('Brevo email is not configured. Set BREVO_API_KEY and BREVO_SENDER_EMAIL (a verified sender in Brevo).');
+  }
+
+  const { senderEmail, senderName } = getSender();
+
+  const safeToEmail = (toEmail || '').trim();
+  if (!safeToEmail) {
+    throw new Error('Missing toEmail');
+  }
+
+  const emailData = {
+    sender: {
+      name: senderName,
+      email: senderEmail
+    },
+    to: [{
+      email: safeToEmail,
+      name: (toName || safeToEmail).trim()
+    }],
+    subject: '✅ Test email from Portfolio server',
+    textContent: `Test email sent successfully.\nSent at: ${new Date().toISOString()}`,
+    htmlContent: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color:#111;">Test email sent successfully</h2>
+        <p style="color:#444;">If you received this, your production email configuration is working.</p>
+        <p style="color:#777; font-size: 12px;">Sent at: ${new Date().toISOString()}</p>
+      </div>
+    `
+  };
+
+  return await sendEmailViaAPI(emailData);
 };
