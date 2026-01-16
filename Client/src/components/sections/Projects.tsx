@@ -15,8 +15,10 @@ interface Project {
   description: string
   image?: string
   tags?: string[]
+  technologies?: string[]
   liveUrl?: string
   github?: string
+  featured?: boolean
 }
 
 const DEMO_PROJECTS: Project[] = [
@@ -60,7 +62,11 @@ export default function Projects() {
         if (!data || !Array.isArray(data) || data.length === 0) {
           return DEMO_PROJECTS
         }
-        return data
+        // Map technologies to tags if tags not present
+        return data.map(project => ({
+          ...project,
+          tags: project.tags || project.technologies || []
+        }))
       } catch (error) {
         console.error('Error fetching projects:', error)
         // Return demo data as fallback
@@ -111,31 +117,58 @@ export default function Projects() {
               className="h-full"
             >
               <motion.div
-                whileHover={{ y: -3, scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                transition={{ duration: 0.25 }}
+                whileHover={{ y: -4 }}
+                transition={{ duration: 0.3 }}
                 onClick={() => handleProjectClick(project)}
+                className="h-full"
               >
                 <Card 
-                  className="overflow-hidden border border-border/30 shadow-sm hover:shadow-lg hover:border-primary/50 transition-all duration-300 group bg-gradient-to-br from-card/40 to-background/20 backdrop-blur-md h-full flex flex-col cursor-pointer relative"
+                  className="h-full border border-border/40 shadow-md hover:shadow-xl hover:border-primary/40 overflow-hidden flex flex-col group bg-gradient-to-br from-card/50 to-background/30 backdrop-blur-xl transition-all duration-500 cursor-pointer"
                   data-testid={`card-project-${project._id}`}
                 >
-                  {/* Image Container */}
-                  <div className="relative overflow-hidden aspect-video sm:aspect-square bg-gradient-to-br from-primary/5 to-secondary/5 w-full">
-                    {/* Hover Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-end justify-end p-2 gap-1">
+                  {/* Image Container - Blog style aspect-video */}
+                  <div className="relative overflow-hidden aspect-video bg-gradient-to-br from-primary/10 to-secondary/10">
+                    {/* Featured Badge - Top Left like Blog */}
+                    {project.featured && (
+                      <motion.div 
+                        className="absolute top-3 left-3 z-10"
+                        whileHover={{ scale: 1.05 }}
+                      >
+                        <Badge className="bg-primary/80 backdrop-blur-sm text-primary-foreground hover:bg-primary/90 text-xs font-semibold">
+                          Featured
+                        </Badge>
+                      </motion.div>
+                    )}
+                    {/* Category Badge if first tag exists */}
+                    {!project.featured && project.tags && project.tags.length > 0 && (
+                      <motion.div 
+                        className="absolute top-3 left-3 z-10"
+                        whileHover={{ scale: 1.05 }}
+                      >
+                        <Badge className="bg-primary/80 backdrop-blur-sm text-primary-foreground hover:bg-primary/90 text-xs font-semibold">
+                          {project.tags[0]}
+                        </Badge>
+                      </motion.div>
+                    )}
+                    {/* Image */}
+                    <img 
+                      src={project.image || projectPlaceholder} 
+                      alt={project.title} 
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                    {/* Hover Overlay - Only on hover */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
                       {project.liveUrl && (
                         <motion.a 
                           href={project.liveUrl} 
                           target="_blank" 
                           rel="noopener noreferrer" 
                           onClick={(e) => e.stopPropagation()}
-                          whileHover={{ scale: 1.08 }}
-                          whileTap={{ scale: 0.92 }}
-                          className="w-full"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
                         >
-                          <Button size="sm" variant="secondary" className="rounded-md text-xs w-full h-7">
-                            <ExternalLink className="w-2.5 h-2.5" /> Live
+                          <Button size="sm" variant="secondary" className="text-xs gap-1.5 shadow-lg">
+                            <ExternalLink className="w-3.5 h-3.5" /> Live
                           </Button>
                         </motion.a>
                       )}
@@ -145,63 +178,57 @@ export default function Projects() {
                           target="_blank" 
                           rel="noopener noreferrer" 
                           onClick={(e) => e.stopPropagation()}
-                          whileHover={{ scale: 1.08 }}
-                          whileTap={{ scale: 0.92 }}
-                          className="w-full"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
                         >
-                          <Button size="sm" variant="secondary" className="rounded-md text-xs w-full h-7">
-                            <Github className="w-2.5 h-2.5" /> Code
+                          <Button size="sm" variant="secondary" className="text-xs gap-1.5 shadow-lg">
+                            <Github className="w-3.5 h-3.5" /> Code
                           </Button>
                         </motion.a>
                       )}
                     </div>
-                    {/* Image */}
-                    <img 
-                      src={project.image || projectPlaceholder} 
-                      alt={project.title} 
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-115"
-                    />
                   </div>
 
-                  {/* Content */}
-                  <motion.div 
-                    className="flex-grow flex flex-col p-3 sm:p-4 bg-gradient-to-b from-card/30 to-background/10"
-                    initial={{ opacity: 0, y: 10 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.08 + 0.1 }}
-                  >
-                    <motion.h3 
-                      className="text-xs sm:text-sm md:text-base font-bold group-hover:text-primary transition-colors duration-300 line-clamp-2 leading-tight mb-1.5"
-                      whileHover={{ x: 2 }}
-                    >
+                  {/* Content - Similar to Blog CardHeader */}
+                  <div className="p-4 pb-2">
+                    <h3 className="text-base font-bold group-hover:text-primary transition-colors duration-300 line-clamp-2 mb-2">
                       {project.title}
-                    </motion.h3>
+                    </h3>
+                  </div>
+
+                  {/* Description - Similar to Blog CardContent */}
+                  <div className="flex-grow px-4 pt-0 pb-2">
+                    <p className="text-muted-foreground text-xs line-clamp-2 mb-3">
+                      {project.description}
+                    </p>
                     
                     {/* Tags */}
-                    <div className="flex flex-wrap gap-1 mb-2">
-                      {project.tags?.slice(0, 3).map(tag => (
-                        <motion.div 
+                    <div className="flex flex-wrap gap-1.5">
+                      {project.tags?.slice(0, 4).map(tag => (
+                        <Badge 
                           key={tag}
-                          whileHover={{ scale: 1.05 }}
-                          transition={{ duration: 0.2 }}
+                          variant="secondary" 
+                          className="text-xs font-medium px-2 py-0.5"
                         >
-                          <Badge variant="secondary" className="font-normal text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded">
-                            {tag}
-                          </Badge>
-                        </motion.div>
+                          {tag}
+                        </Badge>
                       ))}
-                      {project.tags && project.tags.length > 3 && (
-                        <Badge variant="secondary" className="font-normal text-[9px] sm:text-[10px] px-1.5 py-0.5">
-                          +{project.tags.length - 3}
+                      {project.tags && project.tags.length > 4 && (
+                        <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                          +{project.tags.length - 4}
                         </Badge>
                       )}
                     </div>
+                  </div>
 
-                    {/* Description */}
-                    <p className="text-[10px] sm:text-[11px] md:text-xs text-muted-foreground leading-relaxed line-clamp-5">
-                      {project.description}
-                    </p>
-                  </motion.div>
+                  {/* Footer - Similar to Blog CardFooter */}
+                  <div className="px-4 pt-2 pb-4">
+                    <motion.div whileHover={{ x: 4 }} transition={{ duration: 0.2 }}>
+                      <Button variant="link" className="p-0 h-auto text-xs font-medium group-hover:text-primary transition-colors duration-300">
+                        View Details <ArrowRight className="ml-1 w-3 h-3" />
+                      </Button>
+                    </motion.div>
+                  </div>
                 </Card>
               </motion.div>
             </motion.div>

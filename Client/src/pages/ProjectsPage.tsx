@@ -1,7 +1,7 @@
 import Navbar from "@/components/layout/Navbar"
 import Footer from "@/components/sections/Footer"
 import { motion } from "framer-motion"
-import { ExternalLink, Github } from "lucide-react"
+import { ExternalLink, Github, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -17,8 +17,10 @@ interface Project {
   description: string
   image?: string
   tags?: string[]
+  technologies?: string[]
   liveUrl?: string
   github?: string
+  featured?: boolean
 }
 
 const DEMO_PROJECTS: Project[] = [
@@ -62,7 +64,11 @@ export default function ProjectsPage() {
         if (!data || !Array.isArray(data) || data.length === 0) {
           return DEMO_PROJECTS
         }
-        return data
+        // Map technologies to tags if tags not present
+        return data.map(project => ({
+          ...project,
+          tags: project.tags || project.technologies || []
+        }))
       } catch {
         return DEMO_PROJECTS
       }
@@ -92,79 +98,114 @@ export default function ProjectsPage() {
               <Spinner />
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {projects.map((project, index) => (
                 <motion.div
                   key={project._id}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.05, duration: 0.25 }}
-                  onClick={() => setLocation(`/project/${project._id}`)}
-                  className="cursor-pointer"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1, duration: 0.5 }}
+                  className="h-full"
                 >
-                  <Card className="overflow-hidden border border-border/30 shadow-sm hover:shadow-lg hover:border-primary/50 transition-all duration-300 h-full flex flex-col">
-                    <div className="relative overflow-hidden aspect-video bg-gradient-to-br from-primary/5 to-secondary/5">
-                      <img
-                        src={project.image || projectPlaceholder}
-                        alt={project.title}
-                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                      />
-                    </div>
-
-                    <div className="p-4 flex-grow flex flex-col">
-                      <h3 className="text-lg font-bold mb-2 line-clamp-1">
-                        {project.title}
-                      </h3>
-                      <p className="text-sm text-muted-foreground mb-3 line-clamp-3 flex-grow">
-                        {project.description}
-                      </p>
-
-                      <div className="flex flex-wrap gap-1.5 mb-4">
-                        {project.tags?.slice(0, 6).map((tag) => (
-                          <Badge key={tag} variant="secondary" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
+                  <motion.div
+                    whileHover={{ y: -4 }}
+                    transition={{ duration: 0.3 }}
+                    onClick={() => setLocation(`/project/${project._id}`)}
+                  >
+                    <Card className="h-full border border-border/40 shadow-md hover:shadow-xl hover:border-primary/40 overflow-hidden flex flex-col group bg-gradient-to-br from-card/50 to-background/30 backdrop-blur-xl transition-all duration-500 cursor-pointer">
+                      {/* Image Container - Blog style */}
+                      <div className="relative overflow-hidden aspect-video bg-gradient-to-br from-primary/10 to-secondary/10">
+                        {/* Featured Badge */}
+                        {project.featured && (
+                          <motion.div 
+                            className="absolute top-3 left-3 z-10"
+                            whileHover={{ scale: 1.05 }}
+                          >
+                            <Badge className="bg-primary/80 backdrop-blur-sm text-primary-foreground hover:bg-primary/90 text-xs font-semibold">
+                              Featured
+                            </Badge>
+                          </motion.div>
+                        )}
+                        {/* Category Badge */}
+                        {!project.featured && project.tags && project.tags.length > 0 && (
+                          <motion.div 
+                            className="absolute top-3 left-3 z-10"
+                            whileHover={{ scale: 1.05 }}
+                          >
+                            <Badge className="bg-primary/80 backdrop-blur-sm text-primary-foreground hover:bg-primary/90 text-xs font-semibold">
+                              {project.tags[0]}
+                            </Badge>
+                          </motion.div>
+                        )}
+                        <img
+                          src={project.image || projectPlaceholder}
+                          alt={project.title}
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        />
+                        {/* Hover Overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2 z-10">
+                          {project.liveUrl && (
+                            <a
+                              href={project.liveUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Button size="sm" variant="secondary" className="text-xs gap-1.5 shadow-lg">
+                                <ExternalLink className="w-3.5 h-3.5" /> Live
+                              </Button>
+                            </a>
+                          )}
+                          {project.github && (
+                            <a
+                              href={project.github}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Button size="sm" variant="secondary" className="text-xs gap-1.5 shadow-lg">
+                                <Github className="w-3.5 h-3.5" /> Code
+                              </Button>
+                            </a>
+                          )}
+                        </div>
                       </div>
 
-                      <div className="flex gap-2">
-                        {project.liveUrl && (
-                          <a
-                            href={project.liveUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="flex-1"
-                          >
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="w-full text-xs gap-1"
-                            >
-                              <ExternalLink className="w-3 h-3" /> Live
-                            </Button>
-                          </a>
-                        )}
-                        {project.github && (
-                          <a
-                            href={project.github}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="flex-1"
-                          >
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="w-full text-xs gap-1"
-                            >
-                              <Github className="w-3 h-3" /> Code
-                            </Button>
-                          </a>
-                        )}
+                      {/* Content - Blog style */}
+                      <div className="p-4 pb-2">
+                        <h3 className="text-base font-bold group-hover:text-primary transition-colors duration-300 line-clamp-2">
+                          {project.title}
+                        </h3>
                       </div>
-                    </div>
-                  </Card>
+                      
+                      <div className="flex-grow px-4 pt-0 pb-2">
+                        <p className="text-muted-foreground text-xs line-clamp-2 mb-3">
+                          {project.description}
+                        </p>
+
+                        <div className="flex flex-wrap gap-1.5">
+                          {project.tags?.slice(0, 6).map((tag) => (
+                            <Badge key={tag} variant="secondary" className="text-xs font-medium px-2 py-0.5">
+                              {tag}
+                            </Badge>
+                          ))}
+                          {project.tags && project.tags.length > 6 && (
+                            <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                              +{project.tags.length - 6}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="px-4 pt-2 pb-4">
+                        <motion.div whileHover={{ x: 4 }} transition={{ duration: 0.2 }}>
+                          <Button variant="link" className="p-0 h-auto text-xs font-medium group-hover:text-primary transition-colors duration-300">
+                            View Details <ArrowRight className="ml-1 w-3 h-3" />
+                          </Button>
+                        </motion.div>
+                      </div>
+                    </Card>
+                  </motion.div>
                 </motion.div>
               ))}
             </div>

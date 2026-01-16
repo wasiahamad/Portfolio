@@ -20,6 +20,7 @@ interface Project {
   description: string
   image?: string
   tags?: string[]
+  technologies?: string[]
   liveUrl?: string
   github?: string
   githubUrl?: string
@@ -43,6 +44,10 @@ export default function ProjectDetail() {
     queryFn: async () => {
       try {
         const data = await projectsAPI.getById(id!)
+        // Map technologies to tags if tags not present
+        if (data && !data.tags && data.technologies) {
+          data.tags = data.technologies
+        }
         return data
       } catch (error) {
         console.error('Error fetching project:', error)
@@ -91,114 +96,210 @@ export default function ProjectDetail() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4">
+      <motion.div 
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="border-b border-border/50 bg-background/80 backdrop-blur-md sticky top-0 z-50 shadow-sm"
+      >
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-4">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setLocation("/")}
-            className="gap-2 mb-4"
+            className="gap-2 hover:gap-3 transition-all"
           >
             <ArrowLeft className="w-4 h-4" /> Back
           </Button>
         </div>
-      </div>
+      </motion.div>
 
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        {/* Project Info */}
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold mb-4">{project.title}</h1>
-          <p className="text-lg text-muted-foreground mb-6 max-w-2xl">{project.description}</p>
-          
-          {/* Tags */}
-          <div className="flex flex-wrap gap-2 mb-6">
-            {project.tags?.map((tag) => (
-              <span
-                key={tag}
-                className="px-3 py-1 bg-primary/10 text-primary text-sm rounded-full border border-primary/20"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-16">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          {/* Project Image - Moved to top */}
+          {project.image && (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="mb-8 md:mb-12 rounded-xl overflow-hidden border border-border/50 shadow-2xl"
+            >
+              <img
+                src={project.image}
+                alt={project.title}
+                className="w-full h-64 md:h-96 lg:h-[500px] object-cover"
+              />
+            </motion.div>
+          )}
 
-          {/* Links */}
-          <div className="flex gap-4">
-            {project.liveUrl && (
-              <a href={project.liveUrl} target="_blank" rel="noopener noreferrer">
-                <Button className="gap-2">
-                  <ExternalLink className="w-4 h-4" /> Live Demo
-                </Button>
-              </a>
-            )}
-            {(project.githubUrl || project.github) && (
-              <a href={project.githubUrl || project.github} target="_blank" rel="noopener noreferrer">
-                <Button variant="outline" className="gap-2">
-                  <Github className="w-4 h-4" /> View Source
-                </Button>
-              </a>
-            )}
-          </div>
-        </div>
-
-        {/* Project Image */}
-        {project.image && (
-          <div className="mb-12 rounded-lg overflow-hidden border border-border">
-            <img
-              src={project.image}
-              alt={project.title}
-              className="w-full h-96 object-cover"
-            />
-          </div>
-        )}
-
-        {/* Interactive Demo */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold mb-6">Interactive Demo</h2>
-          <div className="border border-border rounded-lg p-6 bg-card/50 backdrop-blur-sm">
-            {DemoComponent ? (
-              <DemoComponent />
-            ) : (
-              <div className="text-center text-muted-foreground py-12">
-                <p>Interactive demo for this project</p>
+          {/* Project Info */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+            className="mb-10"
+          >
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 md:mb-6 bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
+              {project.title}
+            </h1>
+            <p className="text-base md:text-lg text-muted-foreground mb-6 md:mb-8 max-w-3xl leading-relaxed">
+              {project.description}
+            </p>
+            
+            {/* Technologies Section - Blog style */}
+            {(project.tags || project.technologies) && (
+              <div className="mb-6 md:mb-8">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Technologies</h3>
+                <div className="flex flex-wrap gap-2">
+                  {(project.tags || project.technologies)?.map((tag) => (
+                    <motion.div
+                      key={tag}
+                      whileHover={{ scale: 1.05, y: -2 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <Badge 
+                        variant="secondary" 
+                        className="px-3 py-1.5 text-sm font-medium bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors"
+                      >
+                        {tag}
+                      </Badge>
+                    </motion.div>
+                  ))}
+                </div>
               </div>
             )}
-          </div>
-        </div>
+
+            {/* Links */}
+            <div className="flex flex-wrap gap-3">
+              {project.liveUrl && (
+                <motion.a 
+                  href={project.liveUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Button className="gap-2 shadow-md hover:shadow-lg transition-all">
+                    <ExternalLink className="w-4 h-4" /> Live Demo
+                  </Button>
+                </motion.a>
+              )}
+              {(project.githubUrl || project.github) && (
+                <motion.a 
+                  href={project.githubUrl || project.github} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Button variant="outline" className="gap-2 border-border/50 hover:border-primary/50 transition-all">
+                    <Github className="w-4 h-4" /> View Source
+                  </Button>
+                </motion.a>
+              )}
+            </div>
+          </motion.div>
+        </motion.div>
+
+        {/* Interactive Demo */}
+        {DemoComponent && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.5 }}
+            className="mb-12 md:mb-16"
+          >
+            <h2 className="text-2xl md:text-3xl font-bold mb-6">Interactive Demo</h2>
+            <Card className="border border-border/50 rounded-xl overflow-hidden shadow-lg bg-card/50 backdrop-blur-sm">
+              <div className="p-4 md:p-6">
+                <DemoComponent />
+              </div>
+            </Card>
+          </motion.div>
+        )}
 
         {/* Project Details */}
         {demoProject && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-card/50 backdrop-blur-sm border border-border rounded-lg p-6">
-              <h3 className="text-lg font-bold mb-4">Key Features</h3>
-              <ul className="space-y-2">
-                {demoProject.features?.map((feature, i) => (
-                  <li key={i} className="flex items-start gap-3">
-                    <span className="text-primary font-bold mt-1">✓</span>
-                    <span className="text-muted-foreground">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.5 }}
+            className="mb-12 md:mb-16"
+          >
+            <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8">Project Details</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+              <motion.div
+                whileHover={{ y: -4 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Card className="h-full bg-gradient-to-br from-card/50 to-background/30 backdrop-blur-xl border border-border/50 rounded-xl shadow-md hover:shadow-xl transition-all duration-300">
+                  <div className="p-6">
+                    <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                      <span className="text-primary">✦</span>
+                      Key Features
+                    </h3>
+                    <ul className="space-y-3">
+                      {demoProject.features?.map((feature, i) => (
+                        <motion.li 
+                          key={i} 
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.6 + i * 0.05 }}
+                          className="flex items-start gap-3"
+                        >
+                          <span className="text-primary font-bold mt-0.5 text-lg">✓</span>
+                          <span className="text-muted-foreground text-sm leading-relaxed">{feature}</span>
+                        </motion.li>
+                      ))}
+                    </ul>
+                  </div>
+                </Card>
+              </motion.div>
 
-            <div className="bg-card/50 backdrop-blur-sm border border-border rounded-lg p-6">
-              <h3 className="text-lg font-bold mb-4">Technologies Used</h3>
-              <ul className="space-y-2">
-                {demoProject.technologies?.map((tech, i) => (
-                  <li key={i} className="flex items-center gap-3">
-                    <span className="w-2 h-2 bg-primary rounded-full"></span>
-                    <span className="text-muted-foreground">{tech}</span>
-                  </li>
-                ))}
-              </ul>
+              <motion.div
+                whileHover={{ y: -4 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Card className="h-full bg-gradient-to-br from-card/50 to-background/30 backdrop-blur-xl border border-border/50 rounded-xl shadow-md hover:shadow-xl transition-all duration-300">
+                  <div className="p-6">
+                    <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                      <span className="text-primary">⚡</span>
+                      Technologies Used
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {demoProject.technologies?.map((tech, i) => (
+                        <motion.div
+                          key={i}
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: 0.6 + i * 0.05 }}
+                          whileHover={{ scale: 1.05 }}
+                        >
+                          <Badge variant="secondary" className="text-xs font-medium">
+                            {tech}
+                          </Badge>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                </Card>
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
         )}
 
-        {/* All Projects Section */}
+        {/* More Projects Section */}
         {otherProjects.length > 0 && (
-          <div className="mt-16">
-            <h2 className="text-3xl font-bold mb-8">More Projects</h2>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.5 }}
+            className="mt-12 md:mt-20"
+          >
+            <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8">More Projects</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {otherProjects.map((proj, index) => (
                 <motion.div
@@ -278,7 +379,7 @@ export default function ProjectDetail() {
                 </motion.div>
               ))}
             </div>
-          </div>
+          </motion.div>
         )}
       </div>
     </div>
