@@ -48,12 +48,14 @@ const AdminLayout = ({ children }) => {
         className={`w-64 bg-gray-900 text-white flex-shrink-0 flex flex-col fixed h-full z-50 transform transition-transform md:translate-x-0 md:z-auto ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
           } md:static md:transform-none`}
       >
-        <div className="p-6">
-          <div className="flex items-center space-x-3">
-            <img src="/public/Logo.png" alt="Logo" className="w-10 md:w-12 h-10 object-contain" />
-            <h1 className="text-xl font-bold">Admin Panel</h1>
+        <div className="px-6 pt-4 pb-3 flex items-center border-b border-gray-800 gap-3">
+          <div className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-100 shadow-inner flex-shrink-0">
+            <img src="/Logo.png" alt="Logo" className="w-9 h-9 object-contain" />
           </div>
-          <p className="text-sm text-gray-400 mt-1">Portfolio Dashboard</p>
+          <div className="flex flex-col justify-center">
+            <h1 className="text-lg font-bold text-white tracking-wide leading-tight">Admin Panel</h1>
+            <p className="text-xs text-gray-500">Portfolio Dashboard</p>
+          </div>
         </div>
         <nav className="mt-6 flex-1 overflow-y-auto">
           {menuItems.map((item) => (
