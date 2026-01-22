@@ -45,12 +45,14 @@ const AdminLayout = ({ children }) => {
 
       {/* Sidebar */}
       <div
-        className={`w-64 bg-gray-900 text-white flex-shrink-0 flex flex-col fixed h-full z-50 transform transition-transform md:translate-x-0 md:z-auto ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } md:static md:transform-none`}
+        className={`w-64 bg-gray-900 text-white flex-shrink-0 flex flex-col fixed h-full z-50 transform transition-transform md:translate-x-0 md:z-auto ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          } md:static md:transform-none`}
       >
         <div className="p-6">
-          <h1 className="text-2xl font-bold">Admin Panel</h1>
+          <div className="flex items-center space-x-3">
+            <img src="/public/Logo.png" alt="Logo" className="w-10 md:w-12 h-10 object-contain" />
+            <h1 className="text-xl font-bold">Admin Panel</h1>
+          </div>
           <p className="text-sm text-gray-400 mt-1">Portfolio Dashboard</p>
         </div>
         <nav className="mt-6 flex-1 overflow-y-auto">
@@ -60,9 +62,8 @@ const AdminLayout = ({ children }) => {
               href={item.path}
             >
               <a
-                className={`flex items-center px-6 py-3 hover:bg-gray-800 transition cursor-pointer ${
-                  location === item.path ? 'bg-gray-800 border-l-4 border-blue-500' : ''
-                }`}
+                className={`flex items-center px-6 py-3 hover:bg-gray-800 transition cursor-pointer ${location === item.path ? 'bg-gray-800 border-l-4 border-blue-500' : ''
+                  }`}
                 onClick={() => setSidebarOpen(false)}
               >
                 <span className="mr-3 text-xl">{item.icon}</span>
