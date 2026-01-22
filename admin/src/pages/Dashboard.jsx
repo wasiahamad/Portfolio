@@ -18,10 +18,22 @@ const Dashboard = () => {
   });
 
   const [showAnalytics, setShowAnalytics] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    fetchStats();
-    fetchAnalytics();
+    const fetchData = async () => {
+      try {
+        await Promise.all([fetchStats(), fetchAnalytics()]);
+      } catch (err) {
+        setError(true);
+        console.error('Error fetching data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   const fetchStats = async () => {
@@ -74,6 +86,9 @@ const Dashboard = () => {
     { title: 'Total Experience', count: stats.experiences, color: 'bg-yellow-500', icon: '⭐' },
     { title: 'Total Contacts', count: stats.contacts, color: 'bg-pink-500', icon: '💬' }
   ];
+
+  if (error) return <div>Failed to load data</div>;
+  if (loading) return <div>Loading...</div>;
 
   return (
     <div className="space-y-8">
