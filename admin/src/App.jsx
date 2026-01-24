@@ -50,6 +50,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Switch>
+        {/* Some static hosts may serve the SPA at /index.html; normalize it. */}
+        <Route path="/index.html">
+          {() => <Redirect to="/" />}
+        </Route>
         <Route path="/login" component={AdminLogin} />
         <Route path="/dashboard">
           {() => <ProtectedRoute component={AdminDashboard} />}
@@ -72,6 +76,10 @@ function App() {
         <Route path="/">
           {token ? <Redirect to="/dashboard" /> : <Redirect to="/login" />}
         </Route>
+        {/* Catch-all: avoid blank screens for any unknown paths */}
+        <Route>
+          {() => <Redirect to="/" />}
+        </Route>
       </Switch>
       <Toaster />
     </QueryClientProvider>
@@ -79,29 +87,3 @@ function App() {
 }
 
 export default App
-
-import React from 'react';
-
-class ErrorBoundary extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { hasError: false };
-  }
-  static getDerivedStateFromError(error) {
-    return { hasError: true };
-  }
-  componentDidCatch(error, errorInfo) {
-    // log error
-  }
-  render() {
-    if (this.state.hasError) {
-      return <h1>Something went wrong.</h1>;
-    }
-    return this.props.children;
-  }
-}
-
-// Usage:
-<ErrorBoundary>
-  <App />
-</ErrorBoundary>
