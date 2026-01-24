@@ -52,7 +52,7 @@ function App() {
       <Switch>
         {/* Some static hosts may serve the SPA at /index.html; normalize it. */}
         <Route path="/index.html">
-          {() => <Redirect to="/" />}
+          {() => <Redirect to="/dashboard" />}
         </Route>
         <Route path="/login" component={AdminLogin} />
         <Route path="/dashboard">
@@ -78,7 +78,7 @@ function App() {
         </Route>
         {/* Catch-all: avoid blank screens for any unknown paths */}
         <Route>
-          {() => <Redirect to="/" />}
+          {() => <Redirect to="/dashboard" />}
         </Route>
       </Switch>
       <Toaster />
